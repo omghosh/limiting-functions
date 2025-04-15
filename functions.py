@@ -805,6 +805,8 @@ ancestral_mutations = {'IRA1_NON':'II:522427:A:T:IRA1:stop_gained:c.4202T>A:p.Le
 
 # env_color_dict = {'2Day': (0.46,0.74,1), '1Day': (0.4,0.62,0.37), 'Salt': (0.96,0.45,0.42 )}
 
+# version from biorxiv paper:
+# env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
-env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
-
+# new color dict as of april 15 2025
+env_color_dict = {'2Day': (0.60, 0.73, 0.61), '1Day': (0.49, 0.38, 1), 'Salt': (1, 0.59, 0.55)}
