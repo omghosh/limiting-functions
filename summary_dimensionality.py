@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import os
 import sys
+plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.size'] = 12
 
-metric = 'ind_detection_limit'
 organized_perturbation_fitness_df = create_delta_fitness_matrix(batches, fitness_df, environment_dict)
-# env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
 environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'Batch3_Salt_NS_fitness']
 
@@ -18,12 +18,7 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
     directory = f'delta_dimensionality_summary_{metric}'
     these_muts = mutant_dict['Original Training'] + mutant_dict['Original Testing']
 
-    np.random.seed(100)
-    if not os.path.exists(f'plots/{directory}'):
-        os.makedirs(f'plots/{directory}')
-
-
-    n_folds = 100
+    n_folds = 1000
     this_fitness = organized_perturbation_fitness_df
     dimensionality_results_evo1D = pd.DataFrame(columns = environment_dict.keys(), index = mutant_dict.keys())
     dimensionality_results_evo2D = pd.DataFrame(columns =  environment_dict.keys(), index = mutant_dict.keys())
@@ -34,31 +29,33 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
         print(f'Starting {mutant_list}')
         if not 'anc' in mutant_list:
             continue
-        # print(f'{mutant_list} has {len(mutant_dict[mutant_list])} total mutants')
         evo1D = [mut for mut in mutant_dict[mutant_list] if mut in mutant_dict['Evo1D']]
         evo2D = [mut for mut in mutant_dict[mutant_list] if mut in mutant_dict['Evo2D']]
-
+        overall_detection_limit=0
 
         for evo_cond in ['Evo1D', 'Evo2D']:
             if evo_cond == 'Evo1D':
                 dimensionality_results = dimensionality_results_evo1D
             else:
                 dimensionality_results = dimensionality_results_evo2D
-
             stderr_threshold = 0.3
             these_mutants = [mut for mut in mutant_dict[mutant_list] if mut in mutant_dict[evo_cond]]
             std_error_matrix = this_fitness.loc[these_mutants, [col.replace('fitness', 'stderror') for col in all_conds]]
-            mutants_to_cull = std_error_matrix[std_error_matrix > stderr_threshold].dropna(how='all').index
+            if mutant_list == 'anc: IRA1_NON':
+                mutants_to_cull = []
+            else:
+                mutants_to_cull = std_error_matrix[std_error_matrix > stderr_threshold].dropna(how='all').index
             num_mutants_to_cull = len(mutants_to_cull)
 
             if len(these_mutants) == 0:
                 continue
             if len(these_mutants) == len(mutants_to_cull):
                 continue
+
+
             s_values = {}
             for base_env in environment_dict.keys():
                 print(f'Starting {mutant_list} {evo_cond} {base_env}')
-                # these_envs = [env for env in environment_dict[base_env] if 'Batch1' not in env]
                 these_envs = environment_dict[base_env]
                 fitness_matrix = this_fitness.loc[[mut for mut in these_mutants if mut not in mutants_to_cull], these_envs]
                 U,S,Vt = np.linalg.svd(fitness_matrix.values)
@@ -68,7 +65,6 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
                 for i in range(n_folds):
                     noise_matrix = np.random.normal(0, this_fitness.loc[fitness_matrix.index,  [col.replace('fitness', 'stderror') for col in fitness_matrix.columns]])
                     U_n,S_n,Vt_n = np.linalg.svd(noise_matrix)
-                    # plot the fraction of variance explained
                     max_var_exp_list.append((S_n**2/np.sum(S**2))[0])
 
                 max_var_exp = np.mean(max_var_exp_list)
@@ -80,26 +76,23 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
                 if metric == 'ind_detection_limit':
                     dim = np.sum((S**2)/np.sum(S**2) > max_var_exp)
                     # add some jitter to the points
-                    dim = dim + np.random.normal(0, 0.3)
-                    
-                    dimensionality_results.loc[mutant_list, base_env] = np.sum(dim)
+                    dim = dim + np.random.normal(0, 0.1)
+                    dimensionality_results.loc[mutant_list, base_env] = (dim)
                 elif metric == 'ind_entropy':
                     s_vector =S[S**2/np.sum(S**2) > max_var_exp]
                     dimensionality_results.loc[mutant_list, base_env] = -np.sum(s_vector**2/np.sum(s_vector**2)*np.log(s_vector**2/np.sum(s_vector**2)))
-
-            
             if metric == 'overall_detection_limit':
                 for base_env in environment_dict.keys():
                     # how many components are above the overall detection limit 
                     this_S = s_values[base_env]
-                    dimensionality_results.loc[mutant_list, base_env] = np.sum((this_S**2)/np.sum(this_S**2) > overall_detection_limit)
+                    dim = np.sum((this_S**2)/np.sum(this_S**2) > overall_detection_limit)
+                    dim = dim + np.random.normal(0, 0.1)
+                    dimensionality_results.loc[mutant_list, base_env] = dim
             elif metric == 'overall_entropy':
                 for base_env in environment_dict.keys():
                     this_S = s_values[base_env]
                     s_vector = this_S[this_S**2/np.sum(this_S**2) > overall_detection_limit]
                     dimensionality_results.loc[mutant_list, base_env] = -np.sum(s_vector**2/np.sum(s_vector**2)*np.log(s_vector**2/np.sum(s_vector**2)))
-
-
 
     dimensionality_results_evo1D = dimensionality_results_evo1D.dropna()
     dimensionality_results_evo2D = dimensionality_results_evo2D.dropna()
@@ -110,20 +103,6 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
     environments = environment_dict.keys()
     values = dimensionality_results.values
 
-    # print(genotypes)
-    # print(environments)
-    # print(values)
-
-
-    evo_cond = '1Day'
-
-    # # plot scatter plot of dimensionality of evo_cond dimensinoality vs 2Day dimensionality and vs Salt dimensionality
-    # ancestor_colors = {ancestor: color for ancestor, color in 
-    #                   zip(genotypes, 
-    #                       sns.color_palette("mako", len(genotypes)))}
-    
-    # gene_colors = {'anc: WT': (0.5, 0.5, 0.5), ' ': (1, 1, 1)}
-    # gene_colors.update(ancestor_colors)
     ancestor_colors =          {'anc: GPB2':(0.2, 0.63, 0.17), ##33a02c',  # dark green
                     'anc: IRA1_NON': (0.12,0.47,0.71), #'#1f78b4', # dark blue
                     'anc: IRA1_MIS': (0.65,0.81, 0.89), #'#a6cee3', # dark blue
@@ -131,13 +110,9 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
                     'anc: TOR1':(0.85,0.53,0.75 )}
     
     gene_colors = {'anc: WT': (0.5, 0.5, 0.5), ' ': (1, 1, 1)}
-    full_data_to_correlate_EC=[]
-    full_data_to_correlate_nonEC =[] 
-
     gene_colors.update(ancestor_colors)
     # Set the figure size
     plt.figure(figsize=(7, 6), dpi=300)
-    genotype_marker_list = ['o', 's', '^', 'D', 'x', 'P', 'H']
     for g,genotype in enumerate(genotypes):
         if genotype in (dimensionality_results_evo1D.index):
             for env in environments: 
@@ -147,10 +122,7 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
                     x= dimensionality_results_evo1D.loc[genotype, env]
                     plt.scatter(x, y1, color = gene_colors[genotype], label = genotype, s = 100, alpha = 0.75)
                     plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha = 0.75)
-                    full_data_to_correlate_EC.append(x)
-                    full_data_to_correlate_EC.append(x)
-                    full_data_to_correlate_nonEC.append(y1)
-                    full_data_to_correlate_nonEC.append(y2)
+
     for g, genotype in enumerate(dimensionality_results_evo2D.index):
         if genotype in dimensionality_results_evo2D.index:
             for env in dimensionality_results_evo2D.keys():
@@ -158,38 +130,29 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
                     y1 = dimensionality_results_evo2D.loc[genotype, '1Day']
                     y2 = dimensionality_results_evo2D.loc[genotype, 'Salt']
                     x = dimensionality_results_evo2D.loc[genotype, env]
-                    full_data_to_correlate_EC.append(x)
-                    full_data_to_correlate_EC.append(x)
-                    full_data_to_correlate_nonEC.append(y1)
-                    full_data_to_correlate_nonEC.append(y2)
-                    # change marker size 
+
                     plt.scatter(x, y1, color = gene_colors[genotype], label = genotype,  s = 100,  alpha=0.75)
                     plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha=0.75)
-
     
 
-    # are the two lists correlated?
-    # p value? 
-    print(metric)
-    print('Pearson correlation between evolution condition and non-evolution condition dimensionality')
-    
-    print(stats.pearsonr(full_data_to_correlate_EC, full_data_to_correlate_nonEC))
-    
-
-
-    # plt.xlabel('Non-evolution condition dimensionality')
-    # plt.ylabel('Evolution condition Dimensionality')
-    # plot a 1-1 line 
+    min_dim = np.min([np.min(dimensionality_results_evo1D['2Day']), np.min(dimensionality_results_evo1D['Salt']), np.min(dimensionality_results_evo1D['1Day'])])
+    min_dim = np.min([min_dim, np.min(dimensionality_results_evo2D['2Day']), np.min(dimensionality_results_evo2D['Salt']), np.min(dimensionality_results_evo2D['1Day'])])
     max_dim = np.max([np.max(dimensionality_results_evo1D['2Day']), np.max(dimensionality_results_evo1D['Salt']), np.max(dimensionality_results_evo1D['1Day'])])
     max_dim = np.max([max_dim, np.max(dimensionality_results_evo2D['2Day']), np.max(dimensionality_results_evo2D['Salt']), np.max(dimensionality_results_evo2D['1Day'])])
-    plt.plot([0, max_dim], [0, max_dim], 'k--')
-    # plt.legend(title="Genotypes")
+    plt.plot([min_dim-0.5, max_dim+0.5], [min_dim-0.5, max_dim+0.5], 'k--')
     # add legend with just one copy of each genotype
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(), title = 'Genotypes')
+    plt.xlabel('Evolution Base Dimensionality', fontsize = 16)
+    plt.ylabel('Non-Evolution Base Dimensionality', fontsize=16)
+    plt.xlim(min_dim-0.5, max_dim+0.5)
+    plt.ylim(min_dim-0.5, max_dim+0.5)
 
-    plt.title(f'{metric} Dimensionality')
+    # plt.title(f'{metric} Dimensionality')
     plt.tight_layout()
-    plt.savefig(f'../plots/{directory}/{metric}_dimensionality_scatterplot.png')
-    plt.show()
+    if metric == 'ind_detection_limit':
+        plt.savefig(f'plots/fig4c.png')
+    else:
+        plt.savefig(f'plots/SI/{metric}_dimensionality_scatterplot.png')
+    # plt.show()
