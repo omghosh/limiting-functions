@@ -9,7 +9,7 @@ import sys
 
 metric = 'ind_detection_limit'
 organized_perturbation_fitness_df = create_delta_fitness_matrix(batches, fitness_df, environment_dict)
-env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
+# env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
 environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'Batch3_Salt_NS_fitness']
 
@@ -19,17 +19,14 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
     these_muts = mutant_dict['Original Training'] + mutant_dict['Original Testing']
 
     np.random.seed(100)
-    if not os.path.exists(f'../plots/{directory}'):
-        os.makedirs(f'../plots/{directory}')
+    if not os.path.exists(f'plots/{directory}'):
+        os.makedirs(f'plots/{directory}')
 
 
     n_folds = 100
     this_fitness = organized_perturbation_fitness_df
     dimensionality_results_evo1D = pd.DataFrame(columns = environment_dict.keys(), index = mutant_dict.keys())
     dimensionality_results_evo2D = pd.DataFrame(columns =  environment_dict.keys(), index = mutant_dict.keys())
-
-
-    overall_detection_limit = 0
 
 
 

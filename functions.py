@@ -230,7 +230,7 @@ def get_training_and_testing_bcs():
                         'HOG':['HOG1', 'PBS2', 'SSK2'], 'RTG':['MKS1', 'RTG2', 'BMH1'], 'TCA_cycle': ['CIT1', 'KGD1', 'MDH1', 'MAE1', 'ALD5'],
                         'Mito_bio':['PUF3', 'PAB1', 'PAN2', 'PAN3', 'AIM17'], 'Others': ['MKT1', 'GSH1', 'ARO80']}
 
-    db = pd.read_csv('../data/fitness_withMutations.csv', index_col=0)
+    db = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/fitness_withMutations.csv', index_col=0)
     ''
     # create new column that is both ancesotr and gene
     db['ancestor_gene'] = db['ancestor'] + '_' + db['gene']
@@ -803,7 +803,8 @@ ancestral_mutations = {'IRA1_NON':'II:522427:A:T:IRA1:stop_gained:c.4202T>A:p.Le
                       'GPB2':'I:40104:T:G:GPB2:stop_gained:c.846T>G:p.Tyr282*',
                       'TOR1':'X:564551:T:G:TOR1:missense_variant:c.5136T>G:p.Phe1712Leu'}
 
-env_color_dict = {'2Day': (0.46,0.74,1), '1Day': (0.4,0.62,0.37), 'Salt': (0.96,0.45,0.42 )}
+# env_color_dict = {'2Day': (0.46,0.74,1), '1Day': (0.4,0.62,0.37), 'Salt': (0.96,0.45,0.42 )}
 
 
+env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
