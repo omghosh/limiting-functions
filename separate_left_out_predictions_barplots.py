@@ -218,9 +218,9 @@ for focal_base in ['2Day', '1Day', 'Salt']:
                 ax2.spines['right'].set_visible(False)
 
         plt.tight_layout()
-        plt.savefig(f'../plots/{focal_base}_to_{target_base1}_{mut}.png')
-        # plt.show()
-        plt.close()
+        # plt.savefig(f'../plots/{focal_base}_to_{target_base1}_{mut}.png')
+        plt.show()
+        # plt.close()
 
 # def variance_explained_in_and_out(focal_base, target_base, k):
 #     results = {}
