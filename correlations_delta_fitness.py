@@ -127,7 +127,7 @@ plt.yticks(partition_midpoints, partition_labels, rotation=0, fontsize=10)
 
 # Show and save the plot
 plt.tight_layout()
-plt.savefig(f'../plots/pearson_correlations_delta_fitness_organized_by_perturbation_abs_with_borders.png')
+# plt.savefig(f'../plots/pearson_correlations_delta_fitness_organized_by_perturbation_abs_with_borders.png')
 plt.show()
 
 plt.close()

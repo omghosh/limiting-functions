@@ -8,43 +8,59 @@ import matplotlib.colors as mcolors
 # import pandas as pd
 from functions import *
 plt.rcParams['font.family'] = 'Geneva'
-plt.rcParams['font.size'] = 14
+plt.rcParams['font.size'] = 12
 
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 
 
 fitness_df = fitness_df.applymap(lambda x: replace_extinct(x, extinct_fitness=-2))
 
-sorted_list_of_perts = ['30', '1.5', 'M3', 'M3b4', '50uMParomomycin', '10uMH89', 'Raf', '4uMH89',
-                        'RafBaffle', '1.4', '1.4Baffle', '10uMParomomycin', '1.8', '30Baffle', 'NS', 
-                        '28', '1.8Baffle', '0.5%EtOH', 'SucBaffle', '32', 'Suc', '32Baffle']
-#make empty list of length of twoday_conds
-sorted_twoday = [None]*len(twoday_conds)
-sorted_oneday = [None]*len(oneday_conds)
-sorted_salt =[None]*len(salt_conds)
+sorted_list_of_perts = ['30', '1.5', 'M3', 'M3b4','28', '30Baffle','32', '32Baffle',
+                        '1.4','1.4Baffle','1.8','1.8Baffle', 
+                        'Raf', 'RafBaffle','Suc', 'SucBaffle','NS', 
+                        '10uMParomomycin', '50uMParomomycin', '4uMH89','10uMH89',  
+                          '0.5%EtOH' ]
+
+# First, create dictionaries to map perturbations to their desired position
+pert_position = {pert: idx for idx, pert in enumerate(sorted_list_of_perts)}
+
+# Create empty lists to hold sorted conditions
+sorted_twoday = []
+sorted_oneday = []
+sorted_salt = []
+
+# Add conditions to appropriate lists with position info
+twoday_with_position = []
 for cond in twoday_conds:
     pert = cond.split('_')[2]
-    # i want to add cond to sorted all conds if pert is in sorted_list_of_perts
-    if pert in sorted_list_of_perts:
-        # get index of pert in sorted_list_of_perts
-        idx = sorted_list_of_perts.index(pert)
-        sorted_twoday.insert(idx, cond)
+    if pert in pert_position:
+        twoday_with_position.append((cond, pert_position[pert]))
+
+# Sort by the position value
+twoday_with_position.sort(key=lambda x: x[1])
+# Extract just the condition names in the sorted order
+sorted_twoday = [item[0] for item in twoday_with_position]
+
+# Repeat for oneday conditions
+oneday_with_position = []
 for cond in oneday_conds:
     pert = cond.split('_')[2]
-    if pert in sorted_list_of_perts:
-        idx = sorted_list_of_perts.index(pert)
-        sorted_oneday.insert(idx, cond)
+    if pert in pert_position:
+        oneday_with_position.append((cond, pert_position[pert]))
+oneday_with_position.sort(key=lambda x: x[1])
+sorted_oneday = [item[0] for item in oneday_with_position]
+
+# Repeat for salt conditions
+salt_with_position = []
 for cond in salt_conds:
     pert = cond.split('_')[2]
-    if pert in sorted_list_of_perts:
-        idx = sorted_list_of_perts.index(pert)
-        sorted_salt.insert(idx, cond)
+    if pert in pert_position:
+        salt_with_position.append((cond, pert_position[pert]))
+salt_with_position.sort(key=lambda x: x[1])
+sorted_salt = [item[0] for item in salt_with_position]
+
+# Combine all sorted lists
 sorted_list_of_perts = sorted_twoday + sorted_oneday + sorted_salt
-# get rid of None values
-sorted_list_of_perts = [x for x in sorted_list_of_perts if x is not None]
-sorted_twoday = [x for x in sorted_twoday if x is not None]
-sorted_oneday = [x for x in sorted_oneday if x is not None]
-sorted_salt = [x for x in sorted_salt if x is not None]
 
 pert_label_mapping = {'32Baffle': '32°C, Baff', 'M3b4': 'Batch 4 Base', 'M3': 'Batch 3 Base','1.5': 'Batch 2 Base', '30': 'Batch 1 Base', '50uMParomomycin': '50uM Paro', '10uMH89': '10uM H89',
                       'Raf':'Raffinose','4uMH89': '4uM H89' ,'RafBaffle':'Raffinose, Baff', '1.4':'1.4% Glucose', '1.4Baffle':'1.4% Glucose, Baff','10uMParomomycin': '10uM Paro' ,'1.8':'1.8% Glucose',
@@ -262,7 +278,8 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
     cbar.set_ticks([-2, -1, 0, 1, 1.5])
     cbar.set_ticklabels(['< -2', '-1', '0', '1', '1.5'])
     cbar.outline.set_visible(False)
-    plt.tight_layout()
+  # Add more bottom padding to make room for x-labels
+    plt.subplots_adjust(bottom=0.15)  # Increase this value to add more space at bottom
     return fig
 
 
@@ -291,18 +308,12 @@ def main(fitness_df, bc_counts, rebarcoding_source_mutants, environment_dict,
 # Usage example:
 fig = main(fitness_df, bc_counts, rebarcoding_source_mutants, environment_dict, 
           subset_size=3, subset_heatmap=True, num_conditions=3)
-plt.savefig(f'plots/fig2b.png', dpi=300)
-# plt.show()
-# change order of perturbations !!!!!!!
-# calculate t score instead of z scores???
+plt.savefig('plots/fig2b.png', dpi=300, bbox_inches='tight', pad_inches=0.3)
 
-# print([col for col in bc_counts if 'Batch' not in col])
-# print(bc_counts[bc_counts['barcode'].isin(mutant_dict['anc: IRA1_NON'])]['additional_muts'].value_counts())
-
-grant_plosbio_df = pd.read_csv('/Users/olivia/Desktop/journal.pbio.3002848.s013.csv')
-for ancestor in 'IRA1_NON', 'IRA1_MIS', 'CYR1', 'TOR1', 'GPB2':
-    print(ancestor)
-    for evolution_condition in 'Evo1D', 'Evo2D':
-        print(evolution_condition)
-        print(grant_plosbio_df[(grant_plosbio_df['ancestor'] == ancestor) & (grant_plosbio_df['evolution_condition'] == evolution_condition)]['gene'].value_counts())
-    # print(grant_plosbio_df[grant_plosbio_df['ancestor'] == ancestor]['gene'].value_counts())
+# grant_plosbio_df = pd.read_csv('/Users/olivia/Desktop/journal.pbio.3002848.s013.csv')
+# for ancestor in 'IRA1_NON', 'IRA1_MIS', 'CYR1', 'TOR1', 'GPB2':
+#     print(ancestor)
+#     for evolution_condition in 'Evo1D', 'Evo2D':
+#         print(evolution_condition)
+#         print(grant_plosbio_df[(grant_plosbio_df['ancestor'] == ancestor) & (grant_plosbio_df['evolution_condition'] == evolution_condition)]['gene'].value_counts())
+#     # print(grant_plosbio_df[grant_plosbio_df['ancestor'] == ancestor]['gene'].value_counts())

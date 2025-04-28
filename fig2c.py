@@ -69,8 +69,8 @@ for simplex in salt_hull.simplices:
 
 
 
-ax.scatter(pca.transform(X)[:,0], pca.transform(X)[:,1], color=colors, alpha=0.25, marker='o')
-ax.scatter(pca.transform(X)[np.array(base_cond_pert),0], pca.transform(X)[np.array(base_cond_pert),1], marker='D',s = 40, color=base_colors, alpha = 0.8)
+ax.scatter(pca.transform(X)[:,0], pca.transform(X)[:,1], color=colors, alpha=0.75, marker='o')
+ax.scatter(pca.transform(X)[np.array(base_cond_pert),0], pca.transform(X)[np.array(base_cond_pert),1], marker='D',s = 40, color=base_colors, alpha = 1)
 ax.set_xlabel(f'PC1, {round(pca.explained_variance_ratio_[0]*100,1)}% variance explained')
 ax.set_ylabel(f'PC2, {round(pca.explained_variance_ratio_[1]*100,1)}% variance explained')
 ax.set_title('PCA Environment Space')

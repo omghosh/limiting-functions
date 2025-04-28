@@ -809,4 +809,7 @@ ancestral_mutations = {'IRA1_NON':'II:522427:A:T:IRA1:stop_gained:c.4202T>A:p.Le
 # env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
 # new color dict as of april 15 2025
-env_color_dict = {'2Day': (0.60, 0.73, 0.61), '1Day': (0.49, 0.38, 1), 'Salt': (1, 0.59, 0.55)}
+# env_color_dict = {'2Day': (0.60, 0.73, 0.61), '1Day': (0.49, 0.38, 1), 'Salt': (1, 0.59, 0.55)}
+
+# new color dict as of april 24, 2025
+env_color_dict = {'2Day': (0.55, 0.66, 0.56), '1Day': (0.49, 0.38, 1), 'Salt': (1, 0.64, 0.60)}

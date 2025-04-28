@@ -133,8 +133,9 @@ for mut in mutant_names[:1]:
 
         t1_noise = t1_explainable_as_focal
         t2_noise=t2_explainable_as_focal
-        f_noise = results_f_t1["focal_noise_at_k"]
-        unexplained_f = 1 - np.sum(f_var_explained) - f_noise
+        # f_noise = results_f_t1["focal_noise_at_k"]
+        f_noise = 1 - np.sum(f_var_explained)
+        unexplained_f = 0#1 - np.sum(f_var_explained) - f_noise
 
         f_var_explained = np.append(f_var_explained, unexplained_f)
         f_var_explained = np.append(f_var_explained, f_noise)
@@ -156,7 +157,7 @@ for mut in mutant_names[:1]:
 
         if focal_base == '2Day':
             # Create figure with proper size
-            plt.figure(figsize=(8, 8) ,dpi=300)
+            plt.figure(figsize=(10, 8) ,dpi=300)
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 0.7  # Width of the bars

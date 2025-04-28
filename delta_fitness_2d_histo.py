@@ -10,7 +10,7 @@ import matplotlib.colors as mcolors
 import sys
 from scipy import stats
 
-env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
+# env_color_dict = {'2Day': (0.77, 0.84, 0.75), '1Day': (0.55, 0.6, 0.98), 'Salt': (1, 0.59, 0.55)}
 
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 organized_perturbation_fitness_df= create_delta_fitness_matrix(batches, fitness_df, environment_dict)
