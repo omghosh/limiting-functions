@@ -150,8 +150,7 @@ sm = ScalarMappable(norm=norm, cmap=cmap)
 sm.set_array([])  # (required to make ScalarMappable work correctly)
 
 cbar = fig.colorbar(sm, cax=cax)
-# cbar.set_label("Relative Fitness", rotation = 270)
-# cbar.ax.tick_params(labelsize=12)
+
 
 
 plt.tight_layout()

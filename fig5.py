@@ -15,7 +15,7 @@ organized_perturbation_fitness_df = create_delta_fitness_matrix(batches, fitness
 environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'Batch3_Salt_NS_fitness']
 
 
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 12
 
 
@@ -157,12 +157,12 @@ for mut in mutant_names[:1]:
 
         if focal_base == '2Day':
             # Create figure with proper size
-            plt.figure(figsize=(10, 8) ,dpi=300)
+            plt.figure(figsize=(6, 8) ,dpi=300)
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
-            bar_width = 0.7  # Width of the bars
+            bar_width = 1  # Width of the bars
         else: 
-            plt.figure(figsize=(8, 6) ,dpi=300)
+            plt.figure(figsize=(6, 6) ,dpi=300)
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 0.8  # Width of the bars

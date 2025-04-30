@@ -7,7 +7,7 @@ import matplotlib.colors as mcolors
 # import numpy as np 
 # import pandas as pd
 from functions import *
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 14
 
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
@@ -292,12 +292,6 @@ def main(fitness_df, bc_counts, rebarcoding_source_mutants, environment_dict,
 fig = main(fitness_df, bc_counts, rebarcoding_source_mutants, environment_dict, 
           subset_size=3, subset_heatmap=True, num_conditions=3)
 plt.savefig(f'plots/fig2b.png', dpi=300)
-# plt.show()
-# change order of perturbations !!!!!!!
-# calculate t score instead of z scores???
-
-# print([col for col in bc_counts if 'Batch' not in col])
-# print(bc_counts[bc_counts['barcode'].isin(mutant_dict['anc: IRA1_NON'])]['additional_muts'].value_counts())
 
 grant_plosbio_df = pd.read_csv('/Users/olivia/Desktop/journal.pbio.3002848.s013.csv')
 for ancestor in 'IRA1_NON', 'IRA1_MIS', 'CYR1', 'TOR1', 'GPB2':
