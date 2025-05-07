@@ -6,7 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import sys
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 12
 
 environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'Batch3_Salt_NS_fitness']

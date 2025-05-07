@@ -157,12 +157,12 @@ for mut in mutant_names[:1]:
 
         if focal_base == '2Day':
             # Create figure with proper size
-            plt.figure(figsize=(6, 8) ,dpi=300)
+            plt.figure(figsize=(8,6) ,dpi=300)
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 1  # Width of the bars
         else: 
-            plt.figure(figsize=(6, 6) ,dpi=300)
+            plt.figure(figsize=(8, 6) ,dpi=150)
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 0.8  # Width of the bars

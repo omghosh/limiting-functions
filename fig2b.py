@@ -7,8 +7,8 @@ import matplotlib.colors as mcolors
 # import numpy as np 
 # import pandas as pd
 from functions import *
-plt.rcParams['font.family'] = 'Geneva'
-plt.rcParams['font.size'] = 12
+plt.rcParams['font.family'] = 'Helvetica'
+plt.rcParams['font.size'] = 16
 
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 
@@ -151,7 +151,7 @@ def prepare_wt_data(fitness_df, bc_counts, rebarcoding_source_mutants):
     blank_row['Gene'] = " "  # Empty label for spacing
 
     # Insert n  blank rows immediately after the WT row
-    for n in range(2):
+    for n in range(3):
         wt_df = pd.concat([wt_df.iloc[:wt_index + 1+n], blank_row, wt_df.iloc[wt_index + n +1:]], ignore_index=True)
     # wt_df = pd.concat([wt_df.iloc[:wt_index + 1], blank_row, wt_df.iloc[wt_index + 1:]], ignore_index=True)
 
@@ -276,7 +276,7 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
     
     # Set specific ticks and labels for colorbar
     cbar.set_ticks([-2, -1, 0, 1, 1.5])
-    cbar.set_ticklabels(['< -2', '-1', '0', '1', '1.5'])
+    cbar.set_ticklabels(['< -2', '-1', '0', '1', '1.5'], fontsize = 30)
     cbar.outline.set_visible(False)
   # Add more bottom padding to make room for x-labels
     plt.subplots_adjust(bottom=0.15)  # Increase this value to add more space at bottom

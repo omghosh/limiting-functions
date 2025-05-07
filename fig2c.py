@@ -6,8 +6,8 @@ from functions import *
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from scipy.spatial import ConvexHull
-plt.rcParams['font.family'] = 'Geneva'
-plt.rcParams['font.size'] = 12
+plt.rcParams['font.family'] = 'Helvetica'
+plt.rcParams['font.size'] = 30
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 
 # # first, mask all values of -10 with extinct_fitness
@@ -80,7 +80,7 @@ ax.set_title('PCA Environment Space')
 ax.scatter([],[], color='gray', marker = 'D', s=40, alpha =0.8,label='Base environments')
 ax.scatter([],[], color='gray', alpha = 0.25,label='Perturbations')
 #no box around legend
-ax.legend(frameon=False)
-
+ax.legend(frameon=False, fontsize = 20)
+plt.tight_layout()
 plt.savefig(f'plots/fig2c.png')
 # plt.show()

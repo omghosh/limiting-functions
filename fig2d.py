@@ -10,8 +10,9 @@ import os
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 # sns.set_style('darkgrid')
-plt.rcParams['font.family'] = 'Geneva'
-plt.rcParams['font.size'] = 12
+plt.rcParams['font.family'] = 'Helvetica'
+
+plt.rcParams['font.size'] = 14
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 fitness_df = fitness_df.applymap(replace_extinct)
 base_perturbations = ['30','1.5', 'M3', 'M3b4']
@@ -111,9 +112,14 @@ all_perturbations = [perturbation for perturbation in oneday_zscore_avgs.keys() 
 all_perturbations = base_perturbations + [perturbation for perturbation in all_perturbations if perturbation not in base_perturbations]
 # print(all_perturbations)
 # change some of the pertubation labels to make them more readable
-pert_label_mapping = {'32Baffle': '32°C, Baffle', 'M3b4': 'Batch 4 Base', 'M3': 'Batch 3 Base','1.5': 'Batch 2 Base', '30': 'Batch 1 Base', '50uMParomomycin': '50uM Paro', '10uMH89': '10uM H89',
-                      'Raf':'Raffinose','4uMH89': '4uM H89' ,'RafBaffle':'Raffinose, Baffle', '1.4':'1.4% Glucose', '1.4Baffle':'1.4% Glucose, Baffle','10uMParomomycin': '10uM Paro' ,'1.8':'1.8% Glucose',
-                      '0.5%EtOH': '0.5% Ethanol', 'SucBaffle':'Sucrose, Baffle', '32': '32°C', 'Suc':'Sucrose', '28': '28°C', 'NS':'No Shake', '30Baffle':'30°C, Baffle', '1.8Baffle':'1.8% Glucose, Baffle'}
+#pert_label_mapping = {'32Baffle': '32°C, Baffle', 'M3b4': 'Batch 4 Base', 'M3': 'Batch 3 Base','1.5': 'Batch 2 Base', '30': 'Batch 1 Base', '50uMParomomycin': '50uM Paro', '10uMH89': '10uM H89',
+ #                     'Raf':'Raffinose','4uMH89': '4uM H89' ,'RafBaffle':'Raffinose, Baffle', '1.4':'1.4% Glucose', '1.4Baffle':'1.4% Glucose, Baffle','10uMParomomycin': '10uM Paro' ,'1.8':'1.8% Glucose',
+ #                     '0.5%EtOH': '0.5% Ethanol', 'SucBaffle':'Sucrose, Baffle', '32': '32°C', 'Suc':'Sucrose', '28': '28°C', 'NS':'No Shake', '30Baffle':'30°C, Baffle', '1.8Baffle':'1.8% Glucose, Baffle'}
+pert_label_mapping = {'32Baffle': '32°C, Baff', 'M3b4': 'Batch 4 Base', 'M3': 'Batch 3 Base','1.5': 'Batch 2 Base', '30': 'Batch 1 Base', '50uMParomomycin': '50uM Paro', '10uMH89': '10uM H89',
+                      'Raf':'Raffinose','4uMH89': '4uM H89' ,'RafBaffle':'Raffinose, Baff', '1.4':'1.4% Glucose', '1.4Baffle':'1.4% Glucose, Baff','10uMParomomycin': '10uM Paro' ,'1.8':'1.8% Glucose',
+                      '0.5%EtOH': '0.5% Ethanol', 'SucBaffle':'Sucrose, Baff', '32': '32°C', 'Suc':'Sucrose', '28': '28°C', 'NS':'No Shake', '30Baffle':'30°C, Baff', '1.8Baffle':'1.8% Glucose, Baff'}
+
+#
 all_perturbations_labels = []
 for pert in all_perturbations:
     if pert in pert_label_mapping.keys():
@@ -141,7 +147,7 @@ for i, perturbation in enumerate(all_perturbations):
         axs[2, 0].errorbar(i, salt_zscore_avgs[perturbation], yerr=salt_zscore_stds.get(perturbation, 0), color=perturbation_colors[perturbation])
         axs[2, 0].set_xticks(np.arange(len(all_perturbations)))
         
-        axs[2, 0].set_xticklabels(all_perturbations_labels, rotation=90, fontsize=12)
+        axs[2, 0].set_xticklabels(all_perturbations_labels, rotation=90)
         # axs[2,0].set_ylabel('Salt Average z-score', fontsize = 12)
 for ax in axs[:, 0]:
     ax.set_xticks(np.arange(len(all_perturbations)))
@@ -183,13 +189,13 @@ for e, this_base in enumerate(['1Day', '2Day', 'Salt']):
     axs[e, 1].set_yticks(np.arange(0, 15, 5))
 
     if e ==2:
-        axs[e, 1].set_xticklabels([f'{base_name} base' for base_name in ['1Day', '2Day', 'Salt']], rotation=90, fontsize=12)
+        axs[e, 1].set_xticklabels([f'{base_name} base' for base_name in ['1Day', '2Day', 'Salt']], rotation=90)
     else:
         axs[e, 1].set_xticklabels([])   
         axs[e, 1].set_xlabel('')
 
-fig.supxlabel('Perturbations', fontsize=12)
-fig.supylabel('Average Z-score', fontsize=12)
+# fig.supxlabel('Perturbations', fontsize=12)
+# fig.supylabel('Average Z-score', fontsize=12)
 plt.tight_layout()
 # plt.show()
 plt.savefig('plots/fig2d.png')

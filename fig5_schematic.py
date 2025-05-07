@@ -7,7 +7,7 @@ from sklearn.metrics import r2_score
 import seaborn as sns
 from scipy.stats import spearmanr
 
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 12
 
 np.random.seed(0)

@@ -9,7 +9,7 @@ import sys
 import seaborn as sns
 sns.set_style("darkgrid")
 
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 12
 organized_perturbation_fitness_df = create_delta_fitness_matrix(batches, fitness_df, environment_dict)
 

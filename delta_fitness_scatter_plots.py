@@ -10,7 +10,7 @@ import sys
 from matplotlib.lines import Line2D
 
 
-plt.rcParams['font.family'] = 'Geneva'
+plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 16
 
 
@@ -135,7 +135,8 @@ for bc_of_interest in ['CGCTAAAGACATAATGTGGTTTGTTG_TCCATAATTGGGAATTGGATTTTGGC']:
                ncol=1, columnspacing=1, handletextpad=0.5)
     
     plt.tight_layout()
-    plt.savefig(f'plots/fig3b.png')
+    plt.show()
+    # plt.savefig(f'plots/fig3b.png')
     plt.close()
 
 
