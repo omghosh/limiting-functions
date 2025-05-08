@@ -7,6 +7,8 @@ from scipy import stats
 import os
 import sys
 import seaborn as sns
+from matplotlib.lines import Line2D
+
 sns.set_style("darkgrid")
 
 plt.rcParams['font.family'] = 'Helvetica'
@@ -18,21 +20,20 @@ environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'B
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 'overall_entropy']:
     directory = f'delta_dimensionality_summary_{metric}'
-    these_muts = mutant_dict['Original Training'] + mutant_dict['Original Testing']
-
     n_folds = 1000
     this_fitness = organized_perturbation_fitness_df
     dimensionality_results_evo1D = pd.DataFrame(columns = environment_dict.keys(), index = mutant_dict.keys())
     dimensionality_results_evo2D = pd.DataFrame(columns =  environment_dict.keys(), index = mutant_dict.keys())
-
-
 
     for mutant_list in mutant_dict.keys():
         print(f'Starting {mutant_list}')
         if not 'anc' in mutant_list:
             continue
         evo1D = [mut for mut in mutant_dict[mutant_list] if mut in mutant_dict['Evo1D']]
+        print(f'length of evo1D for {mutant_list} : {len(evo1D)}')
         evo2D = [mut for mut in mutant_dict[mutant_list] if mut in mutant_dict['Evo2D']]
+        print(f'length of evo2D for {mutant_list} : {len(evo2D)}')
+
         overall_detection_limit=0
 
         for evo_cond in ['Evo1D', 'Evo2D']:
@@ -115,38 +116,81 @@ for metric in ['ind_detection_limit', 'ind_entropy', 'overall_detection_limit', 
     gene_colors.update(ancestor_colors)
     # Set the figure size
     plt.figure(figsize=(7, 6), dpi=300)
-    for g,genotype in enumerate(genotypes):
-        if genotype in (dimensionality_results_evo1D.index):
-            for env in environments: 
-                if env == evo_cond:
-                    y1 = dimensionality_results_evo1D.loc[genotype, '2Day']
-                    y2 = dimensionality_results_evo1D.loc[genotype, 'Salt']
-                    x= dimensionality_results_evo1D.loc[genotype, env]
-                    plt.scatter(x, y1, color = gene_colors[genotype], label = genotype, s = 100, alpha = 0.75)
-                    plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha = 0.75)
-
     for g, genotype in enumerate(dimensionality_results_evo2D.index):
         if genotype in dimensionality_results_evo2D.index:
+            print(f'genotype {genotype} is in 2 Day')
+
             for env in dimensionality_results_evo2D.keys():
                 if env == '2Day':
                     y1 = dimensionality_results_evo2D.loc[genotype, '1Day']
                     y2 = dimensionality_results_evo2D.loc[genotype, 'Salt']
                     x = dimensionality_results_evo2D.loc[genotype, env]
 
-                    plt.scatter(x, y1, color = gene_colors[genotype], label = genotype,  s = 100,  alpha=0.75)
-                    plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha=0.75)
+                    plt.scatter(x, y1, color = gene_colors[genotype], label = genotype,  s = 100,  alpha=0.75, marker = 's')
+                    plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha=0.75, marker='s')
     
+
+    for g,genotype in enumerate(genotypes):
+        if genotype in (dimensionality_results_evo1D.index):
+            print(f'genotype {genotype} is in 1 Day')
+            for env in environments: 
+                print(env)
+                if env == '1Day':
+                    y1 = dimensionality_results_evo1D.loc[genotype, '2Day']
+                    y2 = dimensionality_results_evo1D.loc[genotype, 'Salt']
+                    x= dimensionality_results_evo1D.loc[genotype, env]
+                    plt.scatter(x, y1, color = gene_colors[genotype], label = genotype, s = 100, alpha = 0.75, marker = 'D')
+                    plt.scatter(x, y2, color = gene_colors[genotype],  label = genotype, s = 100, alpha = 0.75, marker = 'D')
+
 
     min_dim = np.min([np.min(dimensionality_results_evo1D['2Day']), np.min(dimensionality_results_evo1D['Salt']), np.min(dimensionality_results_evo1D['1Day'])])
     min_dim = np.min([min_dim, np.min(dimensionality_results_evo2D['2Day']), np.min(dimensionality_results_evo2D['Salt']), np.min(dimensionality_results_evo2D['1Day'])])
     max_dim = np.max([np.max(dimensionality_results_evo1D['2Day']), np.max(dimensionality_results_evo1D['Salt']), np.max(dimensionality_results_evo1D['1Day'])])
     max_dim = np.max([max_dim, np.max(dimensionality_results_evo2D['2Day']), np.max(dimensionality_results_evo2D['Salt']), np.max(dimensionality_results_evo2D['1Day'])])
     plt.plot([min_dim-0.5, max_dim+0.5], [min_dim-0.5, max_dim+0.5], 'k--')
-    # add legend with just one copy of each genotype
+    
+
+    # LEGEND
+    # Get and clean existing handles/labels
     handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys(), title = 'Genotypes')
-    plt.xlabel('Evolution Base Dimensionality', fontsize = 16)
+
+    # Process labels and deduplicate
+    seen = set()
+    unique_handles = []
+    unique_labels = []
+    for h, lbl in zip(handles, labels):
+        clean_label = lbl.replace("anc:", "")
+        if clean_label not in seen:
+            seen.add(clean_label)
+            unique_handles.append(h)
+            unique_labels.append(clean_label)
+
+    # Create custom marker legend elements
+    custom_handles = [
+        Line2D([], [], color='gray', marker='s', linestyle='None', 
+            markersize=10, markerfacecolor='None', label='Evo2D'),
+        Line2D([], [], color='gray', marker='D', linestyle='None',
+            markersize=10, markerfacecolor='None', label='Evo1D')
+    ]
+    custom_labels = [h.get_label() for h in custom_handles]
+
+    # Create main legend (top-right corner)
+    leg1 = plt.legend(unique_handles, unique_labels, title='Ancestor',
+                    loc='upper left',
+                    frameon=True,
+                    framealpha=0.9)  # Slightly transparent background
+
+    # Create secondary legend (bottom-right corner)
+    leg2 = plt.legend(custom_handles, custom_labels, title='Evolution Base',
+                    loc='lower left',
+                    frameon=True,
+                    framealpha=0.9)
+
+    # Add both legends to the plot
+    plt.gca().add_artist(leg1)
+    plt.gca().add_artist(leg2)
+    
+    plt.xlabel('Evolution Base Dimensionality', fontsize=16)
     plt.ylabel('Non-Evolution Base Dimensionality', fontsize=16)
     plt.xlim(min_dim-0.5, max_dim+0.5)
     plt.ylim(min_dim-0.5, max_dim+0.5)

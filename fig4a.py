@@ -20,8 +20,9 @@ np.random.seed(100)
 organized_perturbation_fitness_df = create_delta_fitness_matrix(batches, fitness_df, environment_dict)
 this_fitness = organized_perturbation_fitness_df
 
-these_mutants = mutant_dict['Original Training'] + mutant_dict['Original Testing']
-
+# these_mutants = mutant_dict['Original Training'] + mutant_dict['Original Testing']
+these_mutants = [mut for mut in mutant_dict['Evo2D'] if mut in mutant_dict['anc: WT']]
+print(len(these_mutants))
 stderr_threshold = 0.3
 std_error_matrix = this_fitness.loc[these_mutants, [col.replace('fitness', 'stderror') for col in all_conds]]
 mutants_to_cull = std_error_matrix[std_error_matrix > stderr_threshold].dropna(how='all').index

@@ -226,10 +226,10 @@ rep1_vals, rep2_vals, rep1_errs, rep2_errs = get_rep1_vs_rep2_points(barcode, al
 ## PLOt the figure 
 
 # Create the main figure with a larger size
-fig = plt.figure(figsize=(16, 8))
+fig = plt.figure(figsize=(18, 9))
 
 # Create two subfigures with adjusted widths
-subfigs = fig.subfigures(1, 2, wspace=0.03, width_ratios=[2.5, 1])
+subfigs = fig.subfigures(1, 2, wspace=0.0, width_ratios=[2.9, 1])
 
 # Left subfigure (scatter plots)
 axsLeft = subfigs[0].subplots(2, 2, sharey='row', sharex='col')
@@ -285,7 +285,8 @@ axsLeft[0,0].set_xlim(-0.5,1.1)
 axsLeft[0,0].set_ylim(-0.5,1.1)
 
 
-unique_perturbations = pairplot_df[['perturbation', 'color']].drop_duplicates()
+# unique_perturbations = pairplot_df[['perturbation', 'color']].drop_duplicates()
+unique_perturbations = pairplot_df[['perturbation', 'color']].drop_duplicates().sort_values('perturbation') 
 # Start with "Replicate" gray dot
 
 # Then add one for each perturbation
@@ -360,26 +361,30 @@ for i, (data, label, color) in enumerate(datasets):
     ax = axsRight[i]
     
     # Plot CDF
-    sns.ecdfplot(np.array(data), color=color, label=label, ax=ax)
-    sns.ecdfplot(np.array(rep_rep), color='gray', label=r'$\delta X_{Rep1}\mathbf{-}\delta X_{Rep2}$', ax=ax, alpha=0.75)
+    # sns.ecdfplot(np.array(data), color=color, label=label, ax=ax)
+    # sns.ecdfplot(np.array(rep_rep), color='gray', label=r'$\delta X_{Rep1}\mathbf{-}\delta X_{Rep2}$', ax=ax, alpha=0.75)
+    sns.kdeplot(np.array(rep_rep), color='gray', label=r'$\delta X_{Rep1}\mathbf{-}\delta X_{Rep2}$', ax=ax, alpha=0.25, fill=True)
 
-    ax.set_ylabel('Percent, %', fontsize=12)
-    ax.set_yticks(np.linspace(0,1,5))
-    ax.set_yticklabels([0,25,50,75,100], fontsize=12)
+    sns.kdeplot(np.array(data), color=color, label=label, ax=ax, fill=True)
+
+    ax.set_ylabel('Density', fontsize=12)
+    # ax.set_yticks(np.linspace(0,1,5))
+    # ax.set_yticklabels([0,25,50,75,100], fontsize=12)
 
 
         # Set labels and legend
     legend_right = ax.legend(fontsize=10, loc='upper left')
         # Adjust legend line length
     ax.set_xlim(-1.5, 1.5)
-    ax.set_ylim(0, 1)
+    # ax.set_ylim(0, 1)
+    ax.set_ylim(0,2.6)
 
     # Hide x-axis for all but the bottom subplot
     if i < 2:
         ax.set_xticklabels([])
         ax.set_xlabel('')
     else:
-        ax.set_xlabel('Differential perturbation fitness effect,\n' + r'$\delta X_{p}^{Base 1}\mathbf{-}\delta X_{p}^{Base 2}$', 
+        ax.set_xlabel('Differences in perturbation fitness effect,\n' + r'$\delta X_{p}^{Base 1}\mathbf{-}\delta X_{p}^{Base 2}$', 
                       fontsize=12, labelpad=10)
         ax.set_xticklabels(np.linspace(-1.5, 1.5, 7), fontsize = 12)
 
@@ -438,6 +443,7 @@ axsLeft[1, 1].set_xlabel(r'Pert. fitness effect in 2 Day base, $\delta X_{p}^{2D
 
 # Add titles to subfigures
 subfigs[0].suptitle('Pairwise Comparisons of Perturbation Fitness Effects', fontsize=16)
-subfigs[1].suptitle('CDF of differential perturbation effects', fontsize=16)
+subfigs[1].suptitle('Distribution of differences\n in perturbation effects', fontsize=16)
 
-plt.savefig('plots/fig3.png', dpi=300)
+plt.savefig('plots/fig3_pdf.png', dpi=300)
+# plt.show()

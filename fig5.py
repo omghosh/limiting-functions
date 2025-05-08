@@ -6,6 +6,7 @@ from scipy.linalg import lstsq
 from sklearn.metrics import r2_score
 import seaborn as sns
 from scipy.stats import spearmanr
+from matplotlib.lines import Line2D
 
 
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
@@ -97,7 +98,7 @@ def variance_explained_in_and_out(focal_base, target_base, k):
     return results
 
 
-k = 8
+k = 7
 
 mutant_names = ['all', 'original', 'anc: IRA1_NON', 'anc: IRA1_MIS', 'anc: GPB2', 'anc: TOR1', 'anc: CYR1']
 
@@ -200,9 +201,17 @@ for mut in mutant_names[:1]:
             plt.fill_between(x_vals, bottom_curve, top_curve, color=colors[i], alpha=0.3)
   
         # Add labels and customize
-        plt.ylabel('Fraction of Variance Explained', fontsize=14)
-        plt.xticks(x_positions, [f'Target 1: {target_base1}', f'Focal: {focal_base}',f'Target 2: {target_base2}'], fontsize=12)
+        plt.xticks([]) #, [f'Target 1: {target_base1}', f'Focal: {focal_base}',f'Target 2: {target_base2}'], fontsize=12)
         plt.ylim(0, 1)
+
+        plt.yticks([0,.2,.4,.6, .8, 1],[0,.2,.4,.6, .8, 1], fontsize = 14)
+        plt.ylabel('Fraction of Variance Explained', fontsize=16)
+
+        # Remove upper and right spines
+        plt.gca().spines['top'].set_visible(False)
+        plt.gca().spines['right'].set_visible(False)
+        plt.gca().spines['bottom'].set_visible(False)
+
 
         # Add titles and adjust layout
         plt.tight_layout()
@@ -214,5 +223,26 @@ for mut in mutant_names[:1]:
             plt.savefig(f'plots/fig5_c_1day.png')
         # plt.show()
         plt.close()
+
+
+# Assuming you have 3 components
+colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
+
+labels = [f'k = {i+1}' for i in range(k)] + ['Missing Variance', 'Noise and non-linearities']
+
+# Create a new figure for the standalone legend
+legend_fig = plt.figure(figsize=(3, 2))
+
+# Create line objects for the legend
+legend_lines = [Line2D([0], [0], color=colors[i], lw=4) for i in range(len(colors))]
+
+# Add a legend to the legend figure
+legend = plt.legend(legend_lines, labels, frameon=False ,ncol=3, loc='center', fontsize=12)
+
+# Remove axes for clarity
+plt.axis('off')
+
+# Save the legend as a separate file
+plt.savefig('plots/fig5_legend.png', bbox_inches='tight', dpi=300)
 
 
