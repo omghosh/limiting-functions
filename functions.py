@@ -412,7 +412,7 @@ environment_dict = {'2Day': twoday_conds, '1Day': oneday_conds, 'Salt': salt_con
 # create delta_fitnes_matrix 
 
 def create_delta_fitness_matrix(batches, fitness_df, environment_dict):
-        fitness_df = fitness_df.applymap(replace_extinct)
+        fitness_df = fitness_df.map(replace_extinct)
         perts=[]
 
         base_conditions = ['M3', '1.5' ,'30']
@@ -448,7 +448,7 @@ def create_delta_fitness_matrix(batches, fitness_df, environment_dict):
             weights = 1 / (errors ** 2)
 
             weights_normalized = weights.div(weights.sum(axis=1), axis=0)
-            print("Sample normalized weights:\n", weights_normalized)
+            # print("Sample normalized weights:\n", weights_normalized)
             # multiply weights_normalized and fitness_values elementwise
 
             weighted_avg = (fitness_values.values * weights_normalized.values).sum(axis=1)
@@ -479,11 +479,14 @@ def create_delta_fitness_matrix(batches, fitness_df, environment_dict):
         organized_perturbation_fitness_df = pd.DataFrame(index = perturbation_fitness_df.index)
         for pert in perts:
             cols = [col for col in perturbation_fitness_df.columns if f'{pert}_' in col]
-            organized_perturbation_fitness_df[cols] = perturbation_fitness_df[cols]
+            organized_perturbation_fitness_df = pd.concat(
+    [organized_perturbation_fitness_df, perturbation_fitness_df[cols]],
+    axis=1
+)
         return organized_perturbation_fitness_df
 
 def get_home_averages(batches, fitness_df, environment_dict):
-        fitness_df = fitness_df.applymap(replace_extinct)
+        fitness_df = fitness_df.map(replace_extinct)
         perts=[]
 
         base_conditions = ['M3', '1.5' ,'30', 'M3b4']
@@ -519,7 +522,7 @@ def get_home_averages(batches, fitness_df, environment_dict):
             weights = 1 / (errors ** 2)
 
             weights_normalized = weights.div(weights.sum(axis=1), axis=0)
-            print("Sample normalized weights:\n", weights_normalized)
+            # print("Sample normalized weights:\n", weights_normalized)
             # multiply weights_normalized and fitness_values elementwise
 
             weighted_avg = (fitness_values.values * weights_normalized.values).sum(axis=1)

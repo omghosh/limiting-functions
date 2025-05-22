@@ -120,6 +120,7 @@ pert_label_mapping = {'32Baffle': '32°C, Baff', 'M3b4': 'Batch 4 Base', 'M3': '
                       '0.5%EtOH': '0.5% Ethanol', 'SucBaffle':'Sucrose, Baff', '32': '32°C', 'Suc':'Sucrose', '28': '28°C', 'NS':'No Shake', '30Baffle':'30°C, Baff', '1.8Baffle':'1.8% Glucose, Baff'}
 
 #
+print(perturbation_colors)
 all_perturbations_labels = []
 for pert in all_perturbations:
     if pert in pert_label_mapping.keys():

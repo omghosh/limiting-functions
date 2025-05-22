@@ -20,6 +20,31 @@ plt.rcParams['font.family'] = 'Helvetica'
 plt.rcParams['font.size'] = 12
 
 
+
+two_day_color_scheme=[ (0.15, 0.25, 0.21) ,
+(0.24, 0.39, 0.34) ,
+(0.55, 0.66, 0.56),
+(0.65, 0.77, 0.66),
+(0.75, 0.87, 0.76) ,
+(0.85, 0.93, 0.86),'gray', 'lightgray' ]
+
+one_day_color_scheme=[(0.12, 0.09, 0.52),
+(0.24, 0.19, 0.71),
+ (0.49, 0.38, 1),
+(0.60, 0.46, 1) ,
+(0.70, 0.54, 1) ,
+ (0.80, 0.62, 1) ,'gray', 'lightgray']
+
+
+salt_color_scheme =[
+
+ (1, 0.39, 0.36),
+(1, 0.64, 0.60),
+(1, 0.76, 0.71),
+(1, 0.88, 0.82),
+(1, 0.94, 0.91), (0.63, 0.31, 0.28), 'gray', 'lightgray']
+
+
 def variance_explained_in_and_out(focal_base, target_base, k):
     results = {}
     focal_base_var_explained_by_component =[]
@@ -98,7 +123,7 @@ def variance_explained_in_and_out(focal_base, target_base, k):
     return results
 
 
-k = 7
+k = 6
 
 mutant_names = ['all', 'original', 'anc: IRA1_NON', 'anc: IRA1_MIS', 'anc: GPB2', 'anc: TOR1', 'anc: CYR1']
 
@@ -111,7 +136,6 @@ for mut in mutant_names[:1]:
         which_mutants = fitness_df.index
 
     for focal_base, target_base1, target_base2 in [('Salt', '1Day', '2Day'), ('1Day', '2Day', 'Salt'), ('2Day', 'Salt', '1Day')]:
-
         X1 = organized_perturbation_fitness_df.loc[which_mutants, environment_dict[focal_base]].values
         X2 = organized_perturbation_fitness_df.loc[which_mutants, environment_dict[target_base1]].values
         X3 = organized_perturbation_fitness_df.loc[which_mutants, environment_dict[target_base2]].values
@@ -154,16 +178,24 @@ for mut in mutant_names[:1]:
         #### plot things #####
      
 
-        colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
+        # colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
 
         if focal_base == '2Day':
             # Create figure with proper size
-            plt.figure(figsize=(8,6) ,dpi=300)
+            plt.figure(figsize=(6,8))
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 1  # Width of the bars
-        else: 
-            plt.figure(figsize=(8, 6) ,dpi=150)
+            colors = two_day_color_scheme
+        elif focal_base == '1Day': 
+            colors = one_day_color_scheme
+            plt.figure(figsize=(6,8) )
+                    # Define x-positions for the three bar charts
+            x_positions = [1, 3, 5]  # Spaced out to leave room for connections
+            bar_width = 0.8  # Width of the bars
+        elif focal_base == 'Salt':
+            colors = salt_color_scheme
+            plt.figure(figsize=(6,8))
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
             bar_width = 0.8  # Width of the bars
@@ -180,26 +212,49 @@ for mut in mutant_names[:1]:
         for idx, (diffs, x_pos) in enumerate(zip([t1_var_explained, f_var_explained, t2_var_explained], x_positions)):
             bottom = 0
             for i in range(k+2):
-                plt.bar(x_pos, diffs[i], bottom=bottom, color=colors[i], width=bar_width)
-                # Store bottom and top for connecting curves
-                bottoms[idx].append(bottom)
-                bottom += diffs[i]
-                tops[idx].append(bottom)
+                if i == k:
+                    if idx == 0:
+                        plt.bar(x_pos, diffs[i], bottom=bottom, color=env_color_dict[target_base1], hatch = '//', edgecolor = 'white', width=bar_width)
+                    else :
+                        plt.bar(x_pos, diffs[i], bottom=bottom, color=env_color_dict[target_base2], hatch = '//', edgecolor = 'white', width=bar_width)
+
+                    # Store bottom and top for connecting curves
+                    bottoms[idx].append(bottom)
+                    bottom += diffs[i]
+                    tops[idx].append(bottom)
+                else:
+                    plt.bar(x_pos, diffs[i], bottom=bottom, color=colors[i], width=bar_width)
+                    # Store bottom and top for connecting curves
+                    bottoms[idx].append(bottom)
+                    bottom += diffs[i]
+                    tops[idx].append(bottom)
 
             # Connect the corresponding segments between bar charts with filled areas
         for i in range(k+2):
-            x_vals = np.linspace(x_right_edges[0], x_left_edges[1], 100)
-            bottom_curve = np.linspace(bottoms[0][i], bottoms[1][i], 100)
-            top_curve = np.linspace(tops[0][i], tops[1][i], 100)
-            plt.fill_between(x_vals, bottom_curve, top_curve, color=colors[i], alpha=0.3)
+
+            if i == k:
+                x_vals = np.linspace(x_right_edges[0], x_left_edges[1], 100)
+                bottom_curve = np.linspace(bottoms[0][i], bottoms[1][i], 100)
+                top_curve = np.linspace(tops[0][i], tops[1][i], 100)
+                plt.fill_between(x_vals, bottom_curve, top_curve, color=env_color_dict[target_base1], hatch = '//', edgecolor = 'white',alpha=0.3)
+
+                x_vals = np.linspace(x_right_edges[1], x_left_edges[2], 100)
+                bottom_curve = np.linspace(bottoms[1][i], bottoms[2][i], 100)
+                top_curve = np.linspace(tops[1][i], tops[2][i], 100)
+                plt.fill_between(x_vals, bottom_curve, top_curve, color=env_color_dict[target_base2], hatch = '//', edgecolor = 'white', alpha=0.3)
             
-            # Connect second and third bar chart - using the edges of the bars
-            x_vals = np.linspace(x_right_edges[1], x_left_edges[2], 100)
-            bottom_curve = np.linspace(bottoms[1][i], bottoms[2][i], 100)
-            top_curve = np.linspace(tops[1][i], tops[2][i], 100)
-            
-            plt.fill_between(x_vals, bottom_curve, top_curve, color=colors[i], alpha=0.3)
-  
+            else:
+                x_vals = np.linspace(x_right_edges[0], x_left_edges[1], 100)
+                bottom_curve = np.linspace(bottoms[0][i], bottoms[1][i], 100)
+                top_curve = np.linspace(tops[0][i], tops[1][i], 100)
+                plt.fill_between(x_vals, bottom_curve, top_curve, color=colors[i], alpha=0.3)
+                
+                # Connect second and third bar chart - using the edges of the bars
+                x_vals = np.linspace(x_right_edges[1], x_left_edges[2], 100)
+                bottom_curve = np.linspace(bottoms[1][i], bottoms[2][i], 100)
+                top_curve = np.linspace(tops[1][i], tops[2][i], 100)
+                plt.fill_between(x_vals, bottom_curve, top_curve, color=colors[i], alpha=0.3)
+    
         # Add labels and customize
         plt.xticks([]) #, [f'Target 1: {target_base1}', f'Focal: {focal_base}',f'Target 2: {target_base2}'], fontsize=12)
         plt.ylim(0, 1)
@@ -216,33 +271,33 @@ for mut in mutant_names[:1]:
         # Add titles and adjust layout
         plt.tight_layout()
         if focal_base == '2Day':
-            plt.savefig(f'plots/fig5_b.png')
+            plt.savefig(f'plots/fig5_b.png', dpi=300)
         elif focal_base == 'Salt':
-            plt.savefig(f'plots/fig5_c_salt.png')
+            plt.savefig(f'plots/fig5_c_salt.png', dpi=300)
         elif focal_base == '1Day':
-            plt.savefig(f'plots/fig5_c_1day.png')
+            plt.savefig(f'plots/fig5_c_1day.png', dpi= 300)
         # plt.show()
         plt.close()
 
 
-# Assuming you have 3 components
-colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
+# # Assuming you have 3 components
+# colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
 
-labels = [f'k = {i+1}' for i in range(k)] + ['Missing Variance', 'Noise and non-linearities']
+# labels = [f'k = {i+1}' for i in range(k)] + ['Missing Variance', 'Noise and non-linearities']
 
-# Create a new figure for the standalone legend
-legend_fig = plt.figure(figsize=(3, 2))
+# # Create a new figure for the standalone legend
+# legend_fig = plt.figure(figsize=(3, 2))
 
-# Create line objects for the legend
-legend_lines = [Line2D([0], [0], color=colors[i], lw=4) for i in range(len(colors))]
+# # Create line objects for the legend
+# legend_lines = [Line2D([0], [0], color=colors[i], lw=4) for i in range(len(colors))]
 
-# Add a legend to the legend figure
-legend = plt.legend(legend_lines, labels, frameon=False ,ncol=3, loc='center', fontsize=12)
+# # Add a legend to the legend figure
+# legend = plt.legend(legend_lines, labels, frameon=False ,ncol=3, loc='center', fontsize=12)
 
-# Remove axes for clarity
-plt.axis('off')
+# # Remove axes for clarity
+# plt.axis('off')
 
-# Save the legend as a separate file
-plt.savefig('plots/fig5_legend.png', bbox_inches='tight', dpi=300)
+# # Save the legend as a separate file
+# plt.savefig('plots/fig5_legend.png', bbox_inches='tight', dpi=300)
 
 
