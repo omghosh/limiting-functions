@@ -185,20 +185,20 @@ for mut in mutant_names[:1]:
             plt.figure(figsize=(6,8))
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
-            bar_width = 1  # Width of the bars
+            bar_width = 1 # Width of the bars
             colors = two_day_color_scheme
         elif focal_base == '1Day': 
             colors = one_day_color_scheme
             plt.figure(figsize=(6,8) )
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
-            bar_width = 0.8  # Width of the bars
+            bar_width = 1 # Width of the bars
         elif focal_base == 'Salt':
             colors = salt_color_scheme
             plt.figure(figsize=(6,8))
                     # Define x-positions for the three bar charts
             x_positions = [1, 3, 5]  # Spaced out to leave room for connections
-            bar_width = 0.8  # Width of the bars
+            bar_width = 1  # Width of the bars
 
         # Calculate the x-coordinates of the left and right edges of each bar
         x_left_edges = [x - bar_width/2 for x in x_positions]

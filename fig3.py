@@ -78,7 +78,9 @@ all_perts  = list(set([col.split('_')[2] for col in organized_perturbation_fitne
 oneday_twoday = []
 oneday_salt = []
 twoday_salt = []
-rep_rep = []
+rep_rep_twoday = []
+rep_rep_oneday=[]
+rep_rep_salt = []
 
 # get rep-rep delta deviation
 oneday_base_avg = fitness_df[['Batch1_1Day_30_fitness', 'Batch2_1Day_1.5_fitness', 'Batch3_1Day_M3_fitness', 'Batch4_1Day_M3b4_fitness']].mean(axis = 1)
@@ -109,14 +111,23 @@ for env in all_conds:
     base = env.split('_')[1]
     if base == '2Day':
         base_avg = twoday_base_avg
+        if r1_label in fitness_df.columns and r2_label in fitness_df.columns:
+            r1_delta_fitness = fitness_df[r1_label]-base_avg
+            r2_delta_fitness = fitness_df[r2_label]-base_avg
+            rep_rep_twoday.extend((r1_delta_fitness-r2_delta_fitness).values)
     elif base == '1Day':
         base_avg = oneday_base_avg
+        if r1_label in fitness_df.columns and r2_label in fitness_df.columns:
+            r1_delta_fitness = fitness_df[r1_label]-base_avg
+            r2_delta_fitness = fitness_df[r2_label]-base_avg
+            rep_rep_oneday.extend((r1_delta_fitness-r2_delta_fitness).values)
     elif base == 'Salt':
         base_avg = salt_base_avg
-    if r1_label in fitness_df.columns and r2_label in fitness_df.columns:
-        r1_delta_fitness = fitness_df[r1_label]-base_avg
-        r2_delta_fitness = fitness_df[r2_label]-base_avg
-        rep_rep.extend((r1_delta_fitness-r2_delta_fitness).values)
+        if r1_label in fitness_df.columns and r2_label in fitness_df.columns:
+            r1_delta_fitness = fitness_df[r1_label]-base_avg
+            r2_delta_fitness = fitness_df[r2_label]-base_avg
+            rep_rep_salt.extend((r1_delta_fitness-r2_delta_fitness).values)
+
 
 
 
@@ -160,18 +171,24 @@ def build_delta_fitness_pairplot_df(
 
 
 
-def get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, oneday_base_avg):
+def get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, base):
+    if base == '1Day':
+        base_avg = oneday_base_avg
+    elif base == '2Day':
+        base_avg = twoday_base_avg
+    elif base == 'Salt':
+        base_avg = salt_base_avg
     r1_vals, r2_vals = [], []
     r1_errs, r2_errs  = [],[]
     for pert in all_perts:
-        r1_cols = [col for col in fitness_df.columns if f'{pert}-R1_fitness' in col and '1Day' in col]
-        r2_cols = [col for col in fitness_df.columns if f'{pert}-R2_fitness' in col and '1Day' in col]
-        r1_cols_err = [col for col in fitness_df.columns if f'{pert}-R1_stderror' in col and '1Day' in col]
-        r2_cols_err = [col for col in fitness_df.columns if f'{pert}-R2_stderror' in col and '1Day' in col]
+        r1_cols = [col for col in fitness_df.columns if f'{pert}-R1_fitness' in col and base in col]
+        r2_cols = [col for col in fitness_df.columns if f'{pert}-R2_fitness' in col and base in col]
+        r1_cols_err = [col for col in fitness_df.columns if f'{pert}-R1_stderror' in col and base in col]
+        r2_cols_err = [col for col in fitness_df.columns if f'{pert}-R2_stderror' in col and base in col]
 
         if r1_cols and r2_cols:
-            r1 = (fitness_df.loc[barcode, r1_cols] - oneday_base_avg.loc[barcode] ) #/np.abs(oneday_base_avg.loc[barcode])).values[0]
-            r2 = fitness_df.loc[barcode, r2_cols] - oneday_base_avg.loc[barcode]#/np.abs(oneday_base_avg.loc[barcode])).values[0]
+            r1 = (fitness_df.loc[barcode, r1_cols] - base_avg.loc[barcode] ) #/np.abs(oneday_base_avg.loc[barcode])).values[0]
+            r2 = fitness_df.loc[barcode, r2_cols] - base_avg.loc[barcode]#/np.abs(oneday_base_avg.loc[barcode])).values[0]
             r1_raw_error = fitness_df.loc[barcode, r1_cols_err].values[0]
             r2_raw_error = fitness_df.loc[barcode, r2_cols_err].values[0]
 
@@ -205,8 +222,7 @@ for col in ['Salt', '1Day', '2Day']:
     if f"{col}_error" not in pairplot_df.columns:
         pairplot_df[f"{col}_error"] = np.nan
 
-rep1_vals, rep2_vals, rep1_errs, rep2_errs = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, oneday_base_avg)
-
+rep1_vals, rep2_vals, rep1_errs, rep2_errs = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '1Day')
 
 
 
@@ -303,33 +319,29 @@ axsLeft[1,0].set_ylim(-1,2)
 axsLeft[1,1].set_xlim(-0.6,0.4)
 axsLeft[1,1].set_ylim(-1,2)
 
-
-
-
+rep_rep_2DSalt = np.concatenate([np.array(rep_rep_salt), np.array(rep_rep_twoday)])
+rep_rep_1DSalt = np.concatenate([np.array(rep_rep_salt), np.array(rep_rep_oneday)])
+rep_rep_1D2D = np.concatenate([np.array(rep_rep_oneday), np.array(rep_rep_twoday)])
 colors = sns.color_palette("rocket", n_colors=10)
 
 print('Using KS test between replicates and deviations')
 print('Salt-2Day vs replicates')
 # Perform the KS test
-statistic, p_value = stats.ks_2samp(rep_rep, twoday_salt)
+statistic, p_value = stats.ks_2samp(rep_rep_2DSalt, twoday_salt)
 print(f"KS Statistic: {statistic:.4f}")
 print(f"P-value: {p_value}")
 print('1Day-2Day vs replicates')
 # Perform the KS test
-statistic, p_value = stats.ks_2samp(rep_rep, oneday_twoday)
+statistic, p_value = stats.ks_2samp(rep_rep_1D2D, oneday_twoday)
 print(f"KS Statistic: {statistic:.4f}")
 print(f"P-value: {p_value}")
 
 print('Salt-1Day vs replicates')
 # Perform the KS test
-statistic, p_value = stats.ks_2samp(rep_rep, oneday_salt)
+statistic, p_value = stats.ks_2samp(rep_rep_1DSalt, oneday_salt)
 print(f"KS Statistic: {statistic:.4f}")
 print(f"P-value: {p_value}")
 
-print('should be same')
-statistic, p_value = stats.ks_2samp(rep_rep, rep_rep)
-print(f"KS Statistic: {statistic:.4f}")
-print(f"P-value: {p_value}")
 
 
 # Plotting for the right subfigure with KS test results
@@ -338,23 +350,42 @@ datasets = [
     (oneday_salt, r'$\delta X_{p}^{1Day}\mathbf{-}\delta X_{p}^{Salt}$', colors[5]),
     (twoday_salt, r'$\delta X_{p}^{2Day}\mathbf{-}\delta X_{p}^{Salt}$', colors[8])
 ]
-
+rep_reps = [ rep_rep_1D2D, rep_rep_1DSalt, rep_rep_2DSalt ]
 for i, (data, label, color) in enumerate(datasets):
+    print(label)
     ax = axsRight[i]
 
-    sns.kdeplot(np.array(rep_rep), color='gray', label=r'$\delta X_{Rep1}\mathbf{-}\delta X_{Rep2}$', ax=ax, alpha=0.25, fill=True)
+    sns.kdeplot(np.array(rep_reps[i]), color='gray', label=r'$\delta X_{Rep1}\mathbf{-}\delta X_{Rep2}$', ax=ax, alpha=0.25, fill=True)
 
     sns.kdeplot(np.array(data), color=color, label=label, ax=ax, fill=True)
 
-    ax.set_ylabel('Density', fontsize=14)
+    rep_rep_quantiles =  np.quantile(rep_reps[i], [0.05, 0.5, 0.95])
+    ax.axvline(x=rep_rep_quantiles[0], color='gray', linestyle='--', alpha = 0.5)
+    ax.axvline(x=rep_rep_quantiles[1], color='gray', linestyle='--', alpha = 0.5)
+    ax.axvline(x=rep_rep_quantiles[2], color='gray', linestyle='--', alpha = 0.5)
 
+    print(f'5th percentile: {rep_rep_quantiles[0]}')
+    print(f'50th percentile: {rep_rep_quantiles[1]}')
+    print(f'95th percentile: {rep_rep_quantiles[2]}')
+    data= np.array(data)
+
+
+    # how much data falls above the 95th percentile and below the 5th percentile in each of the other distributions
+    print('Above 95th percentile:')
+    print(f'{len(data[data > rep_rep_quantiles[2]])/len(data)}')
+    print('Below 5th percentile:')
+    print(f' {len(data[data < rep_rep_quantiles[0]])/len(data)}')
+    print('FDR 10% - amount of data outside quantiles')
+    print((len(data[data > rep_rep_quantiles[2]])+ len(data[data < rep_rep_quantiles[0]]))/len(data))
+
+    ax.set_ylabel('Density', fontsize=14)
 
         # Set labels and legend
     legend_right = ax.legend(fontsize=10, loc='upper left')
         # Adjust legend line length
     ax.set_xlim(-1.5, 1.5)
     # ax.set_ylim(0, 1)
-    ax.set_ylim(0,2.6)
+    ax.set_ylim(0,3.3)
 
     # Hide x-axis for all but the bottom subplot
     if i < 2:
@@ -374,36 +405,22 @@ for i, (data, label, color) in enumerate(datasets):
 
 
 
-# quantiles of rep vs rep
-rep_rep_quantiles = np.quantile(rep_rep, [0.05, 0.5, 0.95])
-# plot vertical lines
-for ax in axsRight:
-    ax.axvline(x=rep_rep_quantiles[0], color='gray', linestyle='--', alpha = 0.5, label='5th percentile')
-    ax.axvline(x=rep_rep_quantiles[1], color='gray', linestyle='--', alpha = 0.5, label='50th percentile')
-    ax.axvline(x=rep_rep_quantiles[2], color='gray', linestyle='--', alpha = 0.5, label='95th percentile')
+# # # quantiles of rep vs rep
+# rep_rep_quantiles = np.quantile(rep_rep, [0.05, 0.5, 0.95])
+# # plot vertical lines
+# for ax in axsRight:
+#     ax.axvline(x=rep_rep_quantiles[0], color='gray', linestyle='--', alpha = 0.5, label='5th percentile')
+#     ax.axvline(x=rep_rep_quantiles[1], color='gray', linestyle='--', alpha = 0.5, label='50th percentile')
+#     ax.axvline(x=rep_rep_quantiles[2], color='gray', linestyle='--', alpha = 0.5, label='95th percentile')
 
-print(f'5th percentile: {rep_rep_quantiles[0]}')
-print(f'50th percentile: {rep_rep_quantiles[1]}')
-print(f'95th percentile: {rep_rep_quantiles[2]}')
+# print(f'5th percentile: {rep_rep_quantiles[0]}')
+# print(f'50th percentile: {rep_rep_quantiles[1]}')
+# print(f'95th percentile: {rep_rep_quantiles[2]}')
 
 oneday_twoday = np.array(oneday_twoday) 
 oneday_salt = np.array(oneday_salt)
 twoday_salt = np.array(twoday_salt)
 
-
-# how much data falls above the 95th percentile and below the 5th percentile in each of the other distributions
-print('Above 95th percentile:')
-print(f'1Day vs 2Day: {len(oneday_twoday[oneday_twoday > rep_rep_quantiles[2]])/len(oneday_twoday)}')
-print(f'1Day vs Salt: {len(oneday_salt[oneday_salt > rep_rep_quantiles[2]])/len(oneday_salt)}')
-print(f'2Day vs Salt: {len(twoday_salt[twoday_salt > rep_rep_quantiles[2]])/len(twoday_salt)}')
-print('Below 5th percentile:')
-print(f'1Day vs 2Day: {len(oneday_twoday[oneday_twoday < rep_rep_quantiles[0]])/len(oneday_twoday)}')
-print(f'1Day vs Salt: {len(oneday_salt[oneday_salt < rep_rep_quantiles[0]])/len(oneday_salt)}')
-print(f'2Day vs Salt: {len(twoday_salt[twoday_salt < rep_rep_quantiles[0]])/len(twoday_salt)}')
-
-print((len(oneday_twoday[oneday_twoday > rep_rep_quantiles[2]])+ len(oneday_twoday[oneday_twoday < rep_rep_quantiles[0]]))/len(oneday_twoday))
-print((len(oneday_salt[oneday_salt > rep_rep_quantiles[2]])+ len(oneday_salt[oneday_salt < rep_rep_quantiles[0]]))/len(oneday_salt))
-print((len(twoday_salt[twoday_salt > rep_rep_quantiles[2]])+ len(twoday_salt[twoday_salt < rep_rep_quantiles[0]]))/len(twoday_salt))
 
 
 
@@ -449,15 +466,37 @@ salt_errors= fitness_df.loc[barcode,['Batch1_Salt_30_stderror', 'Batch2_Salt_1.5
 np.random.seed(0)
 
 x_ticks = [1,3,5]
+conds_to_plot=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness']]
+errs_to_plot=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror']]
+etoh_color = (0.46,0.78,0.68)
 
-plt.figure(figsize=(3,2))
+# conds_to_plot=[fitness_df.loc[barcode,'Batch3_1Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_2Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_Salt_NS_fitness']]
+# errs_to_plot=[fitness_df.loc[barcode,'Batch3_1Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_2Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_Salt_NS_stderror']]
+# ns_color = (0.35,0.64,0.67)
+
+plt.figure(figsize=(4,2))
 colors_bases = [env_color_dict['1Day'], env_color_dict['2Day'], env_color_dict['Salt']]
 for i, (base, err) in enumerate([(one_day_bases, one_day_errors), (two_day_bases, two_day_errors), (salt_bases, salt_errors)]):
     for (cond,err) in zip(base.values, err.values):
         plt.errorbar(x_ticks[i]+np.random.normal(0,0.1,1)[0], cond, yerr = err, marker = 'o',color = colors_bases[i],  alpha = 0.75)
+    plt.scatter(x_ticks[i], np.mean(np.array(base.values)), marker = '_', color ='k')
+    plt.errorbar(x_ticks[i]+.5,conds_to_plot[i], yerr=errs_to_plot[i],marker = 'o',color = etoh_color,  alpha = 0.75 )
 plt.axhline(0, color = 'k', linestyle='--')
 plt.xticks([])
-plt.axvspan(2,4,color='lightgray', alpha = 0.5)
+plt.xlim(0.5,6.5)
+
+
+plt.axvspan(0,2.5,color=env_color_dict['1Day'], alpha = 0.1)
+# plt.axvspan(1.75,2.25, color=etoh_color, alpha = 0.1)
+
+plt.axvspan(2.5,4.5, color=env_color_dict['2Day'], alpha = 0.1)
+# plt.axvspan(3.75,4.25, color=etoh_color, alpha = 0.1)
+
+plt.axvspan(4.5,6.5,color=env_color_dict['Salt'], alpha = 0.1)
+# plt.axvspan(5.75,6.25, color=etoh_color, alpha = 0.1)
+
+
+
 # plt.xticks(x_ticks, (['1 Day \n Base', '2 Day \n Base', 'Salt \n Base']))
 # plt.title('Raw fitness of mutant 1 in base environments')
 plt.ylabel(r'Rel. fitness, $X$')
