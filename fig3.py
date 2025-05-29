@@ -466,13 +466,13 @@ salt_errors= fitness_df.loc[barcode,['Batch1_Salt_30_stderror', 'Batch2_Salt_1.5
 np.random.seed(0)
 
 x_ticks = [1,3,5]
-conds_to_plot=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness']]
-errs_to_plot=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror']]
+conds_to_plot_eth=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_fitness'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_fitness']]
+errs_to_plot_eth=[fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_2Day_0.5%EtOH_stderror'], fitness_df.loc[barcode,'Batch4_1Day_0.5%EtOH_stderror']]
 etoh_color = (0.46,0.78,0.68)
 
-# conds_to_plot=[fitness_df.loc[barcode,'Batch3_1Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_2Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_Salt_NS_fitness']]
-# errs_to_plot=[fitness_df.loc[barcode,'Batch3_1Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_2Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_Salt_NS_stderror']]
-# ns_color = (0.35,0.64,0.67)
+conds_to_plot_ns=[fitness_df.loc[barcode,'Batch3_1Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_2Day_NS_fitness'], fitness_df.loc[barcode,'Batch3_Salt_NS_fitness']]
+errs_to_plot_ns=[fitness_df.loc[barcode,'Batch3_1Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_2Day_NS_stderror'], fitness_df.loc[barcode,'Batch3_Salt_NS_stderror']]
+ns_color = (0.35,0.64,0.67)
 
 plt.figure(figsize=(4,2))
 colors_bases = [env_color_dict['1Day'], env_color_dict['2Day'], env_color_dict['Salt']]
@@ -480,7 +480,9 @@ for i, (base, err) in enumerate([(one_day_bases, one_day_errors), (two_day_bases
     for (cond,err) in zip(base.values, err.values):
         plt.errorbar(x_ticks[i]+np.random.normal(0,0.1,1)[0], cond, yerr = err, marker = 'o',color = colors_bases[i],  alpha = 0.75)
     plt.scatter(x_ticks[i], np.mean(np.array(base.values)), marker = '_', color ='k')
-    plt.errorbar(x_ticks[i]+.5,conds_to_plot[i], yerr=errs_to_plot[i],marker = 'o',color = etoh_color,  alpha = 0.75 )
+    plt.errorbar(x_ticks[i]+.5,conds_to_plot_eth[i], yerr=errs_to_plot_eth[i],marker = 'o',color = etoh_color,  alpha = 0.75)
+    # plt.errorbar(x_ticks[i]+.6,conds_to_plot_ns[i], yerr=errs_to_plot_ns[i],marker = 'o',color = ns_color,  alpha = 0.75 )
+
 plt.axhline(0, color = 'k', linestyle='--')
 plt.xticks([])
 plt.xlim(0.5,6.5)
