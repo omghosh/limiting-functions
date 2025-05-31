@@ -8,6 +8,9 @@ import sys
 environment_dict['Salt'] = [env for env in environment_dict['Salt'] if env != 'Batch3_Salt_NS_fitness']
 env_color_dict = {'2Day': (0.60, 0.73, 0.61), '1Day': (0.49, 0.38, 1), 'Salt': (1, 0.59, 0.55)}
 
+
+plt.rcParams['font.family'] = 'Helvetica'
+plt.rcParams['font.size'] = 15
 bc_counts, fitness_df, grants_df_with_barcode_df, full_df = create_full_fitness_dataframe()
 these_muts = mutant_dict['Original Training'] + mutant_dict['Original Testing']
 np.random.seed(100)
