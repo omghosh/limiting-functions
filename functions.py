@@ -57,7 +57,7 @@ true_neutrals=['CGCTAAAGACATAATGTGGTTTGTTG_TTTTTAAAATGAAACAAGCTTGTATG',
  'CGCTAAAGACATAATGTGGTTTGTTG_AAAGAAAAGCTTAAAGATATTGATGA',
  'CGCTAAAGACATAATGTGGTTTGTTG_CAATCAAGGGTCAATTAACTTTTCAA']
 
-li_file = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/Handpicked_Li2019_neutrals_rearray.csv', index_col=0)
+li_file = pd.read_csv('data/Handpicked_Li2019_neutrals_rearray.csv', index_col=0)
 li_neutrals = li_file['barcode'].values
 
 
@@ -144,15 +144,15 @@ def define_batches_and_replicates():
 def create_full_fitness_dataframe():
     batches, replicates = define_batches_and_replicates()
 
-    bc_counts = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/bc_counts.csv')
-    fitness_df = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/fitness_cleaned.csv', index_col=0)  
+    bc_counts = pd.read_csv('data/bc_counts.csv')
+    fitness_df = pd.read_csv('data/fitness_cleaned.csv', index_col=0)  
     # fitness_df = fitness_df.rename(columns={'Unnamed: 0': 'barcode'})
     # copy index over to new column called barcode
     fitness_df['barcode'] = fitness_df.index
     fitness_df.rename(columns = {'gene':'gene_old'}, inplace = True)
-    bc_df=pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/Kinsler_et_al_2020_BCID_to_barcode_sequence.csv')
+    bc_df=pd.read_csv('data/Kinsler_et_al_2020_BCID_to_barcode_sequence.csv')
 
-    grants_df = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/Kinsler_et_al_2020_fitnessdata_noReplicates.csv')
+    grants_df = pd.read_csv('data/Kinsler_et_al_2020_fitnessdata_noReplicates.csv')
     grants_df = grants_df.rename(columns={'barcode': 'BCID'})
 
     grants_df_with_barcode_df =pd.merge(grants_df, bc_df, on='BCID', how='inner')
@@ -230,7 +230,7 @@ def get_training_and_testing_bcs():
                         'HOG':['HOG1', 'PBS2', 'SSK2'], 'RTG':['MKS1', 'RTG2', 'BMH1'], 'TCA_cycle': ['CIT1', 'KGD1', 'MDH1', 'MAE1', 'ALD5'],
                         'Mito_bio':['PUF3', 'PAB1', 'PAN2', 'PAN3', 'AIM17'], 'Others': ['MKT1', 'GSH1', 'ARO80']}
 
-    db = pd.read_csv('/Users/olivia/Desktop/PetrovLab/bigbatchbootcamp_git/data/fitness_withMutations.csv', index_col=0)
+    db = pd.read_csv('data/fitness_withMutations.csv', index_col=0)
     ''
     # create new column that is both ancesotr and gene
     db['ancestor_gene'] = db['ancestor'] + '_' + db['gene']

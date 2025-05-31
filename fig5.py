@@ -280,24 +280,3 @@ for mut in mutant_names[:1]:
         plt.close()
 
 
-# # Assuming you have 3 components
-# colors = sns.color_palette('pastel', k) + ['crimson']+['lightgray']
-
-# labels = [f'k = {i+1}' for i in range(k)] + ['Missing Variance', 'Noise and non-linearities']
-
-# # Create a new figure for the standalone legend
-# legend_fig = plt.figure(figsize=(3, 2))
-
-# # Create line objects for the legend
-# legend_lines = [Line2D([0], [0], color=colors[i], lw=4) for i in range(len(colors))]
-
-# # Add a legend to the legend figure
-# legend = plt.legend(legend_lines, labels, frameon=False ,ncol=3, loc='center', fontsize=12)
-
-# # Remove axes for clarity
-# plt.axis('off')
-
-# # Save the legend as a separate file
-# plt.savefig('plots/fig5_legend.png', bbox_inches='tight', dpi=300)
-
-
