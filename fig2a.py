@@ -30,7 +30,7 @@ this_fitness_df = fitness_df.sort_values('Batch4_Salt_0.5%EtOH_fitness')
 fitness_values = this_fitness_df['Batch4_Salt_0.5%EtOH_fitness'].values
 
 # Define colormap and normalization
-cmap = sns.color_palette("mako", as_cmap=True)  # Use a diverging colormap
+cmap = sns.color_palette("RdBu_r", as_cmap=True)  # Use a diverging colormap
 # norm = mcolors.TwoSlopeNorm(vmin=np.min(fitness_values), vcenter=0, vmax=np.max(fitness_values))
 # absmax = np.max(np.abs(fitness_values))
 absmax=2
@@ -161,6 +161,5 @@ cbar = fig.colorbar(sm, cax=cbar_ax)
 
 # ===== Final Adjustments =====
 fig.subplots_adjust(wspace=0.3, left=0.08, right=0.9, top=0.92, bottom=0.15)
-
 plt.savefig('plots/fig2a.png')
 plt.close()

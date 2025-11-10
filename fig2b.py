@@ -177,7 +177,6 @@ def create_color_schemes(anc_list, non_wt_df):
     gene_colors.update(ancestor_colors)
     
     return ancestor_colors, gene_colors
-
 def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_colors, 
                  vmin, vmax, num_conditions=3, figsize=(16, 14)):
     """
@@ -185,6 +184,9 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
     """
     num_ancestors = len(ancestor_dfs)
 
+    # Create centered normalization at 0
+    absmax = max(abs(vmin), abs(vmax))
+    norm = mcolors.TwoSlopeNorm(vmin=-absmax, vcenter=0, vmax=absmax)
 
     fig, axs = plt.subplots(
         num_ancestors + 1, num_conditions + 1, figsize=figsize,
@@ -203,8 +205,8 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
             
         ax = axs[0, i + 1]
         sns.heatmap(
-            wt_df[env_cols], cmap='mako',
-            ax=ax, center=0, vmin=vmin, vmax=vmax,
+            wt_df[env_cols], cmap='RdBu_r',
+            ax=ax, norm=norm,  # Use norm instead of center/vmin/vmax
             cbar=False
         )
         ax.set_title(f'{base_env} base')
@@ -220,10 +222,8 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
 
     wt_ancestor_ax.imshow([[gene_colors[gene]] for gene in wt_df['Gene'].values],
     aspect='auto', interpolation='nearest', cmap=ListedColormap(list(gene_colors.values())))
-    wt_ancestor_ax.spines[:].set_visible(False)  # Remove axis outline
-    wt_ancestor_ax.set_frame_on(False)  # Remove any remaining frame
-
-    
+    wt_ancestor_ax.spines[:].set_visible(False)
+    wt_ancestor_ax.set_frame_on(False)
 
     # Plot each ancestor background separately
     for row_idx, (ancestor, df) in enumerate(ancestor_dfs.items(), start=1):
@@ -233,8 +233,8 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
                 
             ax = axs[row_idx, i + 1]
             sns.heatmap(
-                df[env_cols], cmap='mako',
-                ax=ax, center=0, vmin=vmin, vmax=vmax,
+                df[env_cols], cmap='RdBu_r',
+                ax=ax, norm=norm,  # Use norm instead of center/vmin/vmax
                 cbar=False
             )
             ax.set_yticks([])
@@ -252,7 +252,6 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
             if df.shape[0] > 3:
                 ax.hlines(y=3, xmin=0, xmax=df.shape[1] - 1, color='white', linewidth=2)
 
-
         # Add ancestor color bar
         ancestor_ax = axs[row_idx, 0]
         ancestor_ax.set_xticks([])
@@ -261,25 +260,23 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
 
         ancestor_ax.imshow([[ancestor_colors[ancestor]] for _ in range(len(df))],
         aspect='auto', interpolation='nearest', cmap=ListedColormap(list(ancestor_colors.values())))
-        ancestor_ax.spines[:].set_visible(False)  # Remove axis outline
-        ancestor_ax.set_frame_on(False)  # Remove any remaining frame
+        ancestor_ax.spines[:].set_visible(False)
+        ancestor_ax.set_frame_on(False)
 
-    # Add color bar
+    # Add color bar with centered normalization
     cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
-    norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
     cbar_ax.spines[:].set_visible(False)
 
-    sm = plt.cm.ScalarMappable(cmap='mako', norm=norm)
+    sm = plt.cm.ScalarMappable(cmap='RdBu_r', norm=norm)
     sm.set_array([])
     cbar = plt.colorbar(sm, cax=cbar_ax)
-    # cbar.set_label('Fitness relative to WT')
     
     # Set specific ticks and labels for colorbar
     cbar.set_ticks([-2, -1, 0, 1, 1.5])
-    cbar.set_ticklabels(['< -2', '-1', '0', '1', '1.5'], fontsize = 30)
+    cbar.set_ticklabels(['< -2', '-1', '0', '1', '1.5'], fontsize=30)
     cbar.outline.set_visible(False)
-  # Add more bottom padding to make room for x-labels
-    plt.subplots_adjust(bottom=0.15)  # Increase this value to add more space at bottom
+    
+    plt.subplots_adjust(bottom=0.15)
     return fig
 
 
