@@ -3,13 +3,10 @@ import pandas as pd
 from functions import *
 import seaborn as sns
 import matplotlib.pyplot as plt
-import os
 from scipy import stats
-import sys
 from matplotlib.lines import Line2D
-import matplotlib.lines as mlines
-
-import matplotlib.patches as mpatches
+from scipy.stats import chi2
+import matplotlib as mpl
 
 
 plt.rcParams['font.family'] = 'Helvetica'
@@ -215,6 +212,8 @@ pairplot_df = build_delta_fitness_pairplot_df(
     salt_base_avg=salt_base_avg,
     salt_base_avg_error=salt_base_avg_error
 )
+print(pairplot_df)
+
 # Ensure all expected columns are present
 for col in ['Salt', '1Day', '2Day']:
     if col not in pairplot_df.columns:
@@ -222,9 +221,35 @@ for col in ['Salt', '1Day', '2Day']:
     if f"{col}_error" not in pairplot_df.columns:
         pairplot_df[f"{col}_error"] = np.nan
 
-rep1_vals, rep2_vals, rep1_errs, rep2_errs = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '1Day')
+# rep1_vals, rep2_vals, rep1_errs, rep2_errs = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '1Day')
+# rep1 = np.asarray(rep1_vals, dtype=float)
+# rep2 = np.asarray(rep2_vals, dtype=float)
 
+# # remove nan/inf pairs
+# mask = np.isfinite(rep1) & np.isfinite(rep2)
+# print(rep1.dtype, rep2.dtype, mask.sum(), "valid pairs")
+# print(stats.pearsonr(rep1[mask], rep2[mask]))
 
+def get_mahalanobis_distance(ref1, ref2, x,y): 
+    ref = np.column_stack([ref1, ref2])
+    ref = np.asarray(ref, dtype=float) 
+    x = np.array([x, y]) # point to test
+
+    mu = ref.mean(axis=0)
+    cov = np.cov(ref, rowvar=False)        # 2x2
+    # regularize 
+    cov += 1e-8 * np.eye(2)
+    inv_cov = np.linalg.inv(cov)
+
+    diff = x - mu
+    D2 = diff.dot(inv_cov).dot(diff)
+    p_value = 1 - chi2.cdf(D2, df=2)
+
+    # print("Mahalanobis D^2:", D2, "p-value:", p_value)
+
+    return D2, p_value
+
+# ######
 
 ## PLOt the figure 
 
@@ -243,26 +268,87 @@ axsRight = subfigs[1].subplots(3, 1, sharex=True)
 subfigs[1].subplots_adjust(hspace=0.1)
 
 for i,j in [(0,0), (1,0), (1,1)]:
+    # sns.kdeplot(x=rep1_vals, y=rep2_vals, ax=axsLeft[i,j],
+    #             levels=6, fill=True, cmap="Grays", alpha=0.4,
+    #             bw_adjust=1.0)   # tweak bw_adjust for smoothing
+
     axsLeft[i,j].axhline(0, color ='black')
     axsLeft[i,j].axvline(0, color ='black')
-    axsLeft[i,j].errorbar(rep1_vals, rep2_vals, xerr = rep1_errs, yerr= rep2_errs, fmt = 'o', color = 'gray', alpha = 0.5)
+    # axsLeft[i,j].errorbar(rep1_vals, rep2_vals, xerr = rep1_errs, yerr= rep2_errs, marker='s', linestyle='none', color = 'gray', markerfacecolor='white',  alpha = 0.5)
+
+rep1_vals1, rep2_vals1, rep1_errs1, rep2_errs1 = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '1Day')
+rep1_vals2, rep2_vals2, rep1_errs2, rep2_errs2 = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '2Day')
+rep1_valsS, rep2_valsS, rep1_errsS, rep2_errsS = get_rep1_vs_rep2_points(barcode, all_perts, fitness_df, '2Day')
+
+custom_colors = [(0.95, 0.95, 0.95),  # Light gray 1
+                 (0.9, 0.9, 0.9),  # Light gray 2
+                 (0.85, 0.85, 0.85)]  # Light gray 3
+
+# Create the ListedColormap
+custom_cmap = mpl.colors.ListedColormap(custom_colors)
+
 
 for idx, row in pairplot_df.iterrows():
+
+
+    ### 1 day vs 2 day 
     axsLeft[0, 0].errorbar(
         row['1Day'], row['2Day'],
         xerr=row['1Day_error'], yerr=row['2Day_error'],
         fmt='o', color=row['color']
     )
+    rep1_vals = np.concatenate([rep1_vals1, rep1_vals2])
+    rep2_vals =np.concatenate([rep2_vals1, rep2_vals2]) 
+    rep1_errs = np.concatenate([rep1_errs1, rep1_errs2])
+    rep2_errs =np.concatenate([rep2_errs1, rep2_errs2]) 
+    d2, p= (get_mahalanobis_distance(rep1_vals, rep2_vals,row['1Day'],row['2Day']))
+    if p<0.05:
+        print(row['perturbation'], '1day', row['1Day'], '2day', row['2Day'], d2, p)
+    sns.kdeplot(x=rep1_vals, y=rep2_vals, ax=axsLeft[0,0],
+                levels=3, fill=True, cmap=custom_cmap, alpha=0.4,
+                bw_adjust=1)   # tweak bw_adjust for smoothing
+    # axsLeft[0,0].errorbar(rep1_vals, rep2_vals, xerr = rep1_errs, yerr= rep2_errs, marker='s', linestyle='none', color = 'gray', markerfacecolor='white',  alpha = 0.25)
+
+## 1 day vs salt 
+
     axsLeft[1, 0].errorbar(
         row['1Day'], row['Salt'],
         xerr=row['1Day_error'], yerr=row['Salt_error'],
         fmt='o', color=row['color']
     )
+    rep1_vals = np.concatenate([rep1_vals1, rep1_valsS])
+    rep2_vals =np.concatenate([rep2_vals1, rep2_valsS]) 
+    rep1_errs = np.concatenate([rep1_errs1, rep1_errsS])
+    rep2_errs =np.concatenate([rep2_errs1, rep2_errsS]) 
+
+    d2, p= (get_mahalanobis_distance(rep1_vals, rep2_vals,row['1Day'],row['Salt']))
+    if p<0.05:
+        print(row['perturbation'], '1day', row['1Day'], 'salt', row['Salt'], d2, p)
+    sns.kdeplot(x=rep1_vals, y=rep2_vals, ax=axsLeft[1,0],
+                levels=3, fill=True, cmap=custom_cmap, alpha=0.4,
+                bw_adjust=1.0)   # tweak bw_adjust for smoothing
+    # axsLeft[1,0].errorbar(rep1_vals, rep2_vals, xerr = rep1_errs, yerr= rep2_errs, marker='s', linestyle='none', color = 'gray', markerfacecolor='white',  alpha = 0.25)
+
+
+      ## 2 day vs salt   
     axsLeft[1, 1].errorbar(
         row['2Day'], row['Salt'],
         xerr=row['2Day_error'], yerr=row['Salt_error'],
         fmt='o', color=row['color']
     )
+    rep1_vals = np.concatenate([rep1_vals2, rep1_valsS])
+    rep2_vals =np.concatenate([rep2_vals2, rep2_valsS]) 
+    rep1_errs = np.concatenate([rep1_errs2, rep1_errsS])
+    rep2_errs =np.concatenate([rep2_errs2, rep2_errsS]) 
+
+    d2, p= (get_mahalanobis_distance(rep1_vals, rep2_vals,row['2Day'],row['Salt']))
+    if p<0.05:
+        print(row['perturbation'], '2day', row['2Day'], 'salt',row['Salt'], d2, p)
+    sns.kdeplot(x=rep1_vals, y=rep2_vals, ax=axsLeft[1,1],
+                levels=3, fill=True, cmap=custom_cmap, alpha=0.4,
+                bw_adjust=1)   # tweak bw_adjust for smoothing
+    # axsLeft[1,1].errorbar(rep1_vals, rep2_vals, xerr = rep1_errs, yerr= rep2_errs, marker='s', linestyle='none', color = 'gray', markerfacecolor='white',  alpha = 0.25)
+
 
 axsLeft[0,1].axis('off')
 for i,j in [(0,0), (1,0), (1,1)]:
@@ -324,52 +410,94 @@ rep_rep_1DSalt = np.concatenate([np.array(rep_rep_salt), np.array(rep_rep_oneday
 rep_rep_1D2D = np.concatenate([np.array(rep_rep_oneday), np.array(rep_rep_twoday)])
 colors = sns.color_palette("rocket", n_colors=10)
 
-def ks_permutation_test(sample1, sample2, n_permutations=10000):
-    """
-    Permutation test for KS statistic
-    """
-    # Observed KS statistic
-    observed_ks, _ = ks_2samp(sample1, sample2)
+# def ks_permutation_test(sample1, sample2, n_permutations=1000):
+#     """
+#     Permutation test for KS statistic
+#     """
+#     # Observed KS statistic
+#     observed_ks, _ = stats.ks_2samp(sample1, sample2)
     
-    # Combine samples
+#     # Combine samples
+#     combined = np.concatenate([sample1, sample2])
+#     n1 = len(sample1)
+    
+#     # Permutation distribution
+#     perm_ks_stats = []
+#     for _ in range(n_permutations):
+#         # Shuffle and split
+#         np.random.shuffle(combined)
+#         perm_sample1 = combined[:n1]
+#         perm_sample2 = combined[n1:]
+        
+#         # Calculate KS statistic
+#         ks_stat, _ = stats.ks_2samp(perm_sample1, perm_sample2)
+#         perm_ks_stats.append(ks_stat)
+    
+#     # Calculate p-value
+#     p_value = np.mean(np.array(perm_ks_stats) >= observed_ks)
+    
+#     return observed_ks, p_value, perm_ks_stats
+
+
+def bootstrap_ks_test(sample1, sample2, n_iterations=10000):
+    # Calculate the observed KS statistic
+    observed_ks_stat, _ = stats.ks_2samp(sample1, sample2)
+    
     combined = np.concatenate([sample1, sample2])
     n1 = len(sample1)
-    
-    # Permutation distribution
-    perm_ks_stats = []
-    for _ in range(n_permutations):
-        # Shuffle and split
-        np.random.shuffle(combined)
-        perm_sample1 = combined[:n1]
-        perm_sample2 = combined[n1:]
+    n2 = len(sample2)
+
+    # Store the KS statistics from resampled datasets
+    ks_stats = []
+
+    for _ in range(n_iterations):
+        # Resample with replacement
+        resample1 = np.random.choice(combined, size=n1, replace=True)
+        resample2 = np.random.choice(combined, size=n2, replace=True)
         
-        # Calculate KS statistic
-        ks_stat, _ = stats.ks_2samp(perm_sample1, perm_sample2)
-        perm_ks_stats.append(ks_stat)
-    
-    # Calculate p-value
-    p_value = np.mean(np.array(perm_ks_stats) >= observed_ks)
-    
-    return observed_ks, p_value, perm_ks_stats
+        # Calculate the KS statistic for the resampled data
+        resample_ks_stat, _ = stats.ks_2samp(resample1, resample2)
+        ks_stats.append(resample_ks_stat)
+
+    # Calculate p-value based on the resampled KS statistics
+    count_ge = np.sum(np.array(ks_stats) >= observed_ks_stat)
+    p_value = (count_ge + 1) / (n_iterations + 1)  # +1 correction to avoid p=0 case
+
+    return observed_ks_stat, p_value
+
+
+
 print('Using KS test between replicates and deviations')
 print('Salt-2Day vs replicates')
 # Perform the KS test
 # statistic, p_value = stats.ks_2samp(rep_rep_2DSalt, twoday_salt)
-ks, p_val, perm_ks_stats = ks_permutation_test(rep_rep_2DSalt, twoday_salt)
-print(f"KS Statistic: {ks:.4f}")
-print(f"P-value: {p_value}")
-# print('1Day-2Day vs replicates')
-# # Perform the KS test
-# statistic, p_value = stats.ks_2samp(rep_rep_1D2D, oneday_twoday)
-# print(f"KS Statistic: {statistic:.4f}")
-# print(f"P-value: {p_value}")
+# ks, p_val, perm_ks_stats = ks_permutation_test(rep_rep_2DSalt, twoday_salt)
+# print(f"KS Statistic: {ks:.4f}")
+# print(f"P-value: {p_val}")
+obs_diff, p_val = bootstrap_ks_test(rep_rep_2DSalt, twoday_salt)
+print(f"Observed KS: {obs_diff:.4f}")
+print(f"P-value: {p_val:.4f}")
 
-# print('Salt-1Day vs replicates')
-# # Perform the KS test
-# statistic, p_value = stats.ks_2samp(rep_rep_1DSalt, oneday_salt)
-# print(f"KS Statistic: {statistic:.4f}")
-# print(f"P-value: {p_value}")
 
+print('1Day-2Day vs replicates')
+# Perform the KS test
+
+# ks, p_val, perm_ks_stats = ks_permutation_test(rep_rep_1D2D, oneday_twoday)
+# print(f"KS Statistic: {ks:.4f}")
+# print(f"P-value: {p_val}")
+obs_diff, p_val = bootstrap_ks_test(rep_rep_1D2D, oneday_twoday)
+print(f"Observed KS: {obs_diff:.4f}")
+print(f"P-value: {p_val:.4f}")
+
+print('Salt-1Day vs replicates')
+# # Perform the KS test
+# ks, p_val, perm_ks_stats = ks_permutation_test(rep_rep_1DSalt, oneday_salt)
+
+# print(f"KS Statistic: {ks:.4f}")
+# print(f"P-value: {p_val}")
+obs_diff, p_val = bootstrap_ks_test(rep_rep_1DSalt, oneday_salt)
+print(f"Observed KS: {obs_diff:.4f}")
+print(f"P-value: {p_val:.4f}")
 
 
 # Plotting for the right subfigure with KS test results
@@ -420,8 +548,8 @@ for i, (data, label, color) in enumerate(datasets):
         ax.set_xticklabels([])
         ax.set_xlabel('')
     else:
-        ax.set_xlabel('Differences in perturbation fitness effect,\n' + r'$\delta X_{p}^{Base 1}\mathbf{-}\delta X_{p}^{Base 2}$', 
-                      fontsize=14, labelpad=10)
+        ax.set_xlabel('Change fitness effect,\n' + r'$\delta X_{p}^{Base 1}\mathbf{-}\delta X_{p}^{Base 2}$', fontsize=14, labelpad=10)#, 
+                      
         # ax.set_xticklabels(np.linspace(-1.5, 1.5, 7), fontsize = 12)
         # Define tick positions and labels
         tick_positions = np.linspace(-1.5, 1.5, 7)
@@ -463,10 +591,10 @@ for i, j in [(0, 0), (1, 0), (1, 1)]:
 legend = axsLeft[0, 1].legend(handles=legend_handles, loc='center', ncol=2, frameon=False, fontsize=12)
 legend.set_in_layout(False)  # Allows legend to be placed outside the axis
 
-axsLeft[0, 0].set_ylabel(r'Pert. fitness effect in 2 Day base, $\delta X_{p}^{2Day}$', fontsize=14)
-axsLeft[1, 0].set_xlabel(r'Pert. fitness effect in 1 Day base, $\delta X_{p}^{1Day}$', fontsize=14)
-axsLeft[1, 0].set_ylabel(r'Pert. fitness effect in Salt base, $\delta X_{p}^{Salt}$', fontsize=14)
-axsLeft[1, 1].set_xlabel(r'Pert. fitness effect in 2 Day base, $\delta X_{p}^{2Day}$', fontsize=14)
+axsLeft[0, 0].set_ylabel(r'Change in fitness effect', fontsize=14)
+axsLeft[1, 0].set_xlabel(r'Change in fitness effect', fontsize=14)
+axsLeft[1, 0].set_ylabel(r'Change in fitness effect', fontsize=14)
+axsLeft[1, 1].set_xlabel(r'Change in fitness effect', fontsize=14)
 
 
 
@@ -474,7 +602,7 @@ axsLeft[1, 1].set_xlabel(r'Pert. fitness effect in 2 Day base, $\delta X_{p}^{2D
 subfigs[0].suptitle('Pairwise Comparisons of Perturbation Fitness Effects', fontsize=20)
 subfigs[1].suptitle('Distribution of differences\n in perturbation effects', fontsize=20)
 
-plt.savefig('plots/fig3.png', dpi=300)
+plt.savefig('plots/fig3_revised.png', dpi=600)
 # plt.show()
 
 plt.close()
@@ -531,7 +659,8 @@ plt.axvspan(4.5,6.5,color=env_color_dict['Salt'], alpha = 0.1)
 # plt.title('Raw fitness of mutant 1 in base environments')
 plt.ylabel(r'Rel. fitness, $X$')
 plt.tight_layout()
-plt.savefig('plots/fig3a.png', dpi = 200)
+# plt.show()
+plt.savefig('plots/fig3a_revised.png', dpi = 600)
 
 
 print(organized_perturbation_fitness_df.loc[barcode, [col for col in organized_perturbation_fitness_df.columns if 'NS_fitness' in col]])
