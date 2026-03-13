@@ -294,7 +294,7 @@ def plot_heatmap(wt_df, ancestor_dfs, environment_dict, ancestor_colors, gene_co
     
     # Set specific ticks and labels for colorbar
     cbar.set_ticks([-2, -1, 0, 1, 2])
-    cbar.set_ticklabels(['< -2', '-1', '0', '1', '<2'])
+    cbar.set_ticklabels(['< -2', '-1', '0', '1', '> 2'])
     cbar.outline.set_visible(False)
     
     plt.subplots_adjust(bottom=0.15)

@@ -88,7 +88,7 @@ for base_env in environment_dict.keys():
 
     # plot horizontal line at the limit of detection 
     plt.axhline(max_var_exp, color=env_color_dict[base_env], linestyle=':', alpha=0.5, label = f'{base_env} Limit of Detection')
-
+    print((S[:16]**2)/np.sum(S**2))
 plt.xlim(-0.5, 15.25)
 plt.ylim(10**-3, 1)
 
